@@ -665,7 +665,7 @@ async function start(){
   show("gameView");next();
 }
 async function next(){
-  if(state.busy)return;state.busy=true;
+  if(state.busy)return;state.busy=true;state.song=null;state.q=null;
   stopClip();
   $("reveal").classList.add("hide");$("nextBtn").classList.add("hide");$("opts").innerHTML="";
   if(state.ready.length<=state.round&&!state.resolved){setButtons(false);$("question").textContent="Finding the next tape…";while(state.ready.length<=state.round&&!state.resolved)await sleep(150)}
