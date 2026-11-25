@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nineties Filmi Quiz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: playful, nostalgic, a Sunday-night Chitrahaar countdown
+   IDEA: a 90s cassette deck with a film-poster sleeve
+   PICTURE: a big cassette whose reels spin while the snippet plays
+   COLOUR and TYPE: magenta dominant, marigold support, teal accent; Yatra One + Poppins
+   LAYOUT: one column: title, cassette, question, answer chips, score strip */
+:root{color-scheme:light dark;
+--bg:light-dark(#fff4e2,#1a0b16);--ink:light-dark(#2a0f22,#fdeee0);--muted:light-dark(#7a5068,#c9a7b8);
+--mag:#c2185b;--mag2:light-dark(#9c0f47,#ff4f93);--gold:#ffb300;--teal:#00897b;--card:light-dark(#ffffff,#2a1424);--line:light-dark(#f0d6c0,#4a2a3c)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Poppins,system-ui,sans-serif;overflow-x:clip}
+header{background:var(--mag);color:#fff;padding:18px max(5vw,16px) 22px;text-align:center;border-bottom:6px solid var(--gold)}
+h1{font:400 clamp(32px,6vw,52px)/1.05 "Yatra One",serif;margin:0;text-wrap:balance}
+header p{margin:6px 0 0;opacity:.9}
+main{max-width:720px;margin:0 auto;padding:20px max(4vw,16px) 48px}
+.deck{background:linear-gradient(160deg,#3a1630,#1c0a17);border-radius:22px;padding:22px;box-shadow:0 14px 30px #0004;color:#fff}
+.tape{background:linear-gradient(#ffcc4d,#ff9f00);border-radius:14px;padding:16px;position:relative;box-shadow:inset 0 -6px 0 #0002}
+.label{background:#fff8ea;color:#2a0f22;border-radius:8px;padding:6px 12px;font:600 14px Poppins;display:flex;justify-content:space-between;gap:8px}
+.window{margin:14px auto 4px;background:#2a0f22;border-radius:40px;height:96px;display:flex;align-items:center;justify-content:space-around;max-width:420px}
+.reel{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,#fff 0 14%,#2a0f22 15% 30%,#6b3a55 31% 100%);position:relative}
+.reel::before,.reel::after{content:"";position:absolute;inset:44% 8%;background:#fff;border-radius:3px}
+.reel::after{transform:rotate(60deg)}
+.spin .reel{animation:spin 1.2s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin .reel{animation:none}}
+.bar{height:6px;background:#0003;border-radius:3px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--mag)}
+.controls{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
+button{font:600 16px Poppins;min-height:44px;border-radius:999px;border:0;padding:0 20px;cursor:pointer}
+button:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.play{background:var(--gold);color:#2a0f22;min-width:150px}
+.ghost{background:#ffffff1f;color:#fff}
+button:disabled{opacity:.45;cursor:default}
+.q{margin:26px 0 12px;font:400 clamp(22px,4vw,30px)/1.15 "Yatra One",serif;text-align:center;text-wrap:balance}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.opt{background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:14px;min-height:56px;padding:10px 14px;text-align:left;font-weight:600}
+.opt:hover:not(:disabled){border-color:var(--mag2)}
+.opt.right{background:var(--teal);border-color:var(--teal);color:#fff;opacity:1}
+.opt.wrong{background:var(--mag);border-color:var(--mag);color:#fff;opacity:1}
+.reveal{margin-top:16px;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:14px;display:flex;gap:14px;align-items:center}
+.reveal img{width:84px;height:84px;border-radius:10px;flex:none;background:var(--line)}
+.reveal b{display:block;font-size:18px}
+.reveal dl{margin:4px 0 0;display:grid;grid-template-columns:auto 1fr;gap:2px 10px;font-size:14px}
+.reveal dt{color:var(--muted)}.reveal dd{margin:0}
+.strip{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:14px}
+.strip strong{color:var(--ink);font-size:18px}
+.setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+label{font-size:14px;color:var(--muted);display:grid;gap:4px}
+select{font:16px Poppins;min-height:44px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:0 10px}
+.start{background:var(--mag);color:#fff;width:100%;margin-top:16px;min-height:52px;font-size:18px}
+.msg{text-align:center;color:var(--muted);min-height:1.5em;margin-top:10px;font-size:14px}
+.end{text-align:center}.end .big{font:400 clamp(44px,10vw,72px)/1 "Yatra One",serif;color:var(--mag2)}
+.hide{display:none}
+.signup{max-width:420px;margin:24px auto 0;display:grid;gap:14px}
+.signup h2,.lb h2{font:400 clamp(24px,4vw,30px)/1.15 "Yatra One",serif;margin:0;text-align:center}
+.signup p{margin:0;text-align:center;color:var(--muted)}
+input[type=text]{font:16px Poppins;min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;width:100%}
+input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.err{color:var(--mag2);font-size:14px;min-height:1.2em;margin:0;text-align:center}
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
+.who b{font-size:17px}
+.link{background:none;color:var(--mag2);padding:0 6px;min-height:44px;text-decoration:underline;font-weight:600}
+.lb{margin-top:24px;text-align:left}
+.lb table{width:100%;border-collapse:collapse;margin-top:12px;background:var(--card);border-radius:14px;overflow:hidden;border:2px solid var(--line)}
+.lb th,.lb td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
+.lb th{font-size:13px;color:var(--muted);font-weight:600}
+.lb td.n,.lb th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lb tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent);font-weight:700}
+.lb .note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
+@media(max-width:600px){.lb th,.lb td{padding:8px 6px;font-size:14px}.opts,.setup{grid-template-columns:minmax(0,1fr)}.reel{width:58px;height:58px}.window{height:80px}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Nineties Filmi Quiz</h1>
+  <p>Hear a few seconds. Name the film, the singer or the star.</p>
+</header>
+<main>
+  <section class="deck" aria-label="Player">
+    <div class="tape" id="tape">
+      <div class="label"><span id="sideA">Side A · 1990–1999</span><span id="roundLbl">Ready</span></div>
+      <div class="window"><div class="reel"></div><div class="reel"></div></div>
+      <div class="bar"><i id="prog"></i></div>
+    </div>
+    <div class="controls">
+      <button class="play" id="playBtn" disabled>▶ Play clip</button>
+      <button class="ghost" id="moreBtn" disabled>+5 sec</button>
+      <button class="ghost" id="skipBtn" disabled>Skip</button>
+    </div>
+    <p class="msg" id="msg" style="color:#e8c9d8"></p>
+  </section>
+
+  <section id="signupView" class="hide">
+    <form class="signup" id="signupForm" novalidate>
+      <h2>Who's playing?</h2>
+      <p>Sign up to get on the leaderboard.</p>
+      <label>First name<input type="text" id="firstName" autocomplete="given-name" maxlength="30" required></label>
+      <label>City<input type="text" id="city" autocomplete="address-level2" maxlength="40" required></label>
+      <p class="err" id="signupErr" role="alert"></p>
+      <button class="start" type="submit">Let's play</button>
+    </form>
+  </section>
+
+  <section id="setupView" class="hide">
+    <div class="who"><span>Playing as <b id="whoName"></b> · <span id="whoCity"></span></span><button class="link" id="switchBtn" type="button">Switch player</button></div>
+    <div class="setup">
+      <label>Guess the
+        <select id="mode">
+          <option value="mix">Mix it up</option>
+          <option value="film">Soundtrack (film)</option>
+          <option value="singer">Singer</option>
+          <option value="actor">Actor / actress on screen</option>
+        </select>
+      </label>
+      <label>Clip length
+        <select id="len">
+          <option value="4">4 sec (hard)</option>
+          <option value="8" selected>8 sec</option>
+          <option value="15">15 sec (easy)</option>
+        </select>
+      </label>
+      <label>Rounds
+        <select id="rounds"><option>5</option><option selected>10</option><option>20</option></select>
+      </label>
+      <label>Your record
+        <select disabled><option id="best">—</option></select>
+      </label>
+    </div>
+    <button class="start" id="startBtn">Start the countdown</button>
+  </section>
+
+  <section id="gameView" class="hide">
+    <h2 class="q" id="question">…</h2>
+    <div class="opts" id="opts"></div>
+    <div class="reveal hide" id="reveal"></div>
+    <div class="controls"><button class="start hide" id="nextBtn">Next song →</button></div>
+    <div class="strip"><span>Score <strong id="score">0</strong></span><span>Streak <strong id="streak">0</strong></span><span>Round <strong id="round">0</strong></span></div>
+  </section>
+
+  <section id="endView" class="hide end">
+    <p class="q">That's the end of the tape</p>
+    <div class="big" id="final">0</div>
+    <p id="finalNote" class="msg"></p>
+    <div class="lb">
+      <h2>Leaderboard</h2>
+      <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n">Songs played</th><th class="n">Correct</th></tr></thead><tbody id="lbBody"></tbody></table>
+      <p class="note" id="lbNote"></p>
+    </div>
+    <button class="start" id="againBtn">Play again</button>
+  </section>
+</main>
+<footer>Clips are Apple Music's official 30-second previews, loaded when you play. You need an internet connection.</footer>
+
+<script>
+{
+// title, film, year, on-screen actors, singers (Apple credits; null = read from Apple at play time), Apple track id, store, search hint
+const SONGS=/*SONGS*/[["Dheere Dheere Se","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],
+["Anuradha Paudwal","Kumar Sanu"],1073377447,"in"],
+["Nazar Ke Saamne","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],null,null,null,null],
+["Tu Meri Zindagi Hai","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],
+["Anuradha Paudwal","Kumar Sanu"],1073377453,"in"],
+["Ab Tere Bin","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],
+["Kumar Sanu"],1073377457,"in"],
+["Bas Ek Sanam Chahiye","Aashiqui",1990,["Rahul Roy"],null,null,null,null],
+["Mera Dil Tere Liye","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],
+["Anuradha Paudwal","Udit Narayan"],1073377450,"in"],
+["Mujhe Neend Na Aaye","Dil",1990,["Aamir Khan","Madhuri Dixit"],
+["Anuradha Paudwal","Udit Narayan"],1073371970,"in"],
+["Hum Pyar Karne Wale","Dil",1990,["Aamir Khan","Madhuri Dixit"],
+["Anuradha Paudwal","Udit Narayan"],1073371973,"in"],
+["O Priya Priya","Dil",1990,["Aamir Khan","Madhuri Dixit"],
+["Anuradha Paudwal","Suresh Wadkar"],1073371969,"in"],
+["Hum Ne Ghar Chhoda Hai","Dil",1990,["Aamir Khan","Madhuri Dixit"],null,null,null,null],
+["Tamma Tamma Loge","Thanedaar",1990,["Sanjay Dutt","Madhuri Dixit"],
+["Bappi Lahiri","Anuradha Paudwal"],1148209210,"in"],
+["Chandni Raat Hai","Baaghi",1990,["Salman Khan","Nagma"],
+["Abhijeet","Kavita Krishnamurthy"],1128727057,"in"],
+["Gori Hai Kalaiyan","Aaj Ka Arjun",1990,["Amitabh Bachchan","Jaya Prada"],
+["Lata Mangeshkar","Shabbir Kumar"],1128770324,"in"],
+["Humko Aaj Kal Hai Intezaar","Sailaab",1990,["Madhuri Dixit"],null,null,null,null],
+["Mera Dil Bhi Kitna Pagal Hai","Saajan",1991,["Salman Khan","Madhuri Dixit"],
+["Kumar Sanu","Alka Yagnik"],1127723103,"in"],
+["Dekha Hai Pehli Baar","Saajan",1991,["Salman Khan","Madhuri Dixit"],
+["Alka Yagnik","S. P. Balasubrahmanyam"],1127722348,"in"],
+["Tu Shayar Hai","Saajan",1991,["Madhuri Dixit"],null,null,null,null],
+["Jiye To Jiye Kaise","Saajan",1991,["Salman Khan","Madhuri Dixit","Sanjay Dutt"],null,null,null,null],
+["Tumse Milne Ki Tamanna Hai","Saajan",1991,["Salman Khan","Madhuri Dixit"],
+["S. P. Balasubrahmanyam"],1127722534,"in"],
+["Dheere Dheere Pyar Ko Badhana Hai","Phool Aur Kaante",1991,["Ajay Devgn","Madhoo"],
+["Alka Yagnik","Kumar Sanu"],1536819571,"in"],
+["Maine Pyar Tumhi Se Kiya Hai","Phool Aur Kaante",1991,["Ajay Devgn","Madhoo"],
+["Anuradha Paudwal","Kumar Sanu"],1536819574,"in"],
+["Dil Hai Ke Manta Nahin","Dil Hai Ke Manta Nahin",1991,["Aamir Khan","Pooja Bhatt"],null,null,null,null],
+["Adayein Bhi Hain","Dil Hai Ke Manta Nahin",1991,["Aamir Khan","Pooja Bhatt"],
+["Anuradha Paudwal","Kumar Sanu"],1141555016,"in"],
+["Jab Jab Pyar Pe Pehra","Sadak",1991,["Sanjay Dutt","Pooja Bhatt"],
+["Anuradha Paudwal","Kumar Sanu"],1141609926,"in"],
+["Tumhen Apna Banane Ki Kasam","Sadak",1991,["Sanjay Dutt","Pooja Bhatt"],null,null,null,null],
+["Ilu Ilu","Saudagar",1991,["Vivek Mushran","Manisha Koirala"],
+["Kavita Krishnamurthy","Manhar Udhas","Udit Narayan"],1410220824,"in"],
+["Jumma Chumma De De","Hum",1991,["Amitabh Bachchan","Kimi Katkar"],null,null,null,null],
+["Megha Re Megha","Lamhe",1991,["Sridevi"],
+["Lata Mangeshkar","Ila Arun"],1337292085,"in"],
+["Morni Baga Ma","Lamhe",1991,["Sridevi"],null,null,null,null],
+["Kabhi Main Kahoon","Lamhe",1991,["Anil Kapoor","Sridevi"],
+["Lata Mangeshkar","Hariharan"],1337292186,"in"],
+["Saathiya Tune Kya Kiya","Love",1991,["Salman Khan","Revathi"],
+["S. P. Balasubrahmanyam","K. S. Chithra"],1128737049,"in"],
+["Kabhi Tu Chhalia Lagta Hai","Patthar Ke Phool",1991,["Salman Khan","Raveena Tandon"],
+["Lata Mangeshkar","S. P. Balasubrahmanyam"],1540267988,"in"],
+["Pehla Nasha","Jo Jeeta Wohi Sikandar",1992,["Aamir Khan","Ayesha Jhulka"],
+["Udit Narayan","Sadhana Sargam"],1340749968,"us"],
+["Yahan Ke Hum Sikandar","Jo Jeeta Wohi Sikandar",1992,["Aamir Khan"],
+["Udit Narayan","Sadhana Sargam"],1340749971,"us"],
+["Dhak Dhak Karne Laga","Beta",1992,["Anil Kapoor","Madhuri Dixit"],
+["Anuradha Paudwal","Udit Narayan"],1121047279,"in"],
+["Koyal Si Teri Boli","Beta",1992,["Anil Kapoor","Madhuri Dixit"],
+["Anuradha Paudwal","Udit Narayan"],1121047278,"in"],
+["Aisi Deewangi","Deewana",1992,["Shah Rukh Khan","Divya Bharti"],
+["Alka Yagnik","Vinod Rathod"],1129810150,"us"],
+["Koi Na Koi Chahiye","Deewana",1992,["Shah Rukh Khan"],
+["Vinod Rathod"],1129810725,"us"],
+["Sochenge Tumhe Pyar","Deewana",1992,["Rishi Kapoor","Divya Bharti"],
+["Kumar Sanu"],1129810470,"us"],
+["Teri Umeed Tera Intezar","Deewana",1992,["Rishi Kapoor","Divya Bharti"],
+["Kumar Sanu","Sadhana Sargam"],1129810330,"us"],
+["Payaliya","Deewana",1992,["Rishi Kapoor","Divya Bharti"],null,null,null,null],
+["Saat Samundar Paar","Vishwatma",1992,["Divya Bharti"],
+["Sadhana Sargam"],1388885586,"in"],
+["Tu Mujhe Kabool","Khuda Gawah",1992,["Amitabh Bachchan","Sridevi"],
+["Kavita Krishnamurthy","Mohammed Aziz"],1536513114,"us"],
+["Roja Jaaneman","Roja",1992,["Arvind Swamy","Madhoo"],null,null,null,null],
+["Dil Hai Chhota Sa","Roja",1992,["Madhoo"],null,null,null,null],
+["Tu Pagal Premi Awara","Shola Aur Shabnam",1992,["Govinda","Divya Bharti"],null,null,null,null],
+["Yeh Kaali Kaali Aankhen","Baazigar",1993,["Shah Rukh Khan","Kajol"],
+["Kumar Sanu"],1125937054,"in"],
+["Baazigar O Baazigar","Baazigar",1993,["Shah Rukh Khan","Kajol"],
+["Kumar Sanu","Alka Yagnik"],1125936883,"in"],
+["Jaadu Teri Nazar","Darr",1993,["Shah Rukh Khan","Juhi Chawla"],
+["Udit Narayan"],1366555239,"in"],
+["Tu Mere Saamne","Darr",1993,["Shah Rukh Khan","Juhi Chawla"],null,null,null,null],
+["Likha Hai Yeh In Hawaon Mein","Darr",1993,["Sunny Deol","Juhi Chawla"],
+["Lata Mangeshkar","Hariharan"],1366555724,"in"],
+["Choli Ke Peeche","Khalnayak",1993,["Madhuri Dixit","Neena Gupta"],null,null,null,null],
+["Palki Mein Hoke Sawar","Khalnayak",1993,["Madhuri Dixit"],null,null,null,null],
+["Nayak Nahi Khalnayak Hoon Main","Khalnayak",1993,["Sanjay Dutt"],null,null,null,null],
+["Ghunghat Ki Aad Se","Hum Hain Rahi Pyar Ke",1993,["Aamir Khan","Juhi Chawla"],null,null,null,null],
+["Kash Koi Ladka Mujhe","Hum Hain Rahi Pyar Ke",1993,["Juhi Chawla"],null,null,null,null],
+["Woh To Hai Albela","Kabhi Haan Kabhi Naa",1994,["Shah Rukh Khan","Suchitra Krishnamoorthi"],
+["Kumar Sanu","Devaki Pandit"],274118267,"in"],
+["Aana Mere Pyar Ko Na","Kabhi Haan Kabhi Naa",1994,["Shah Rukh Khan","Suchitra Krishnamoorthi"],
+["Alka Yagnik","Kumar Sanu"],274118169,"in"],
+["Didi Tera Devar Deewana","Hum Aapke Hain Koun..!",1994,["Madhuri Dixit","Salman Khan"],
+["Lata Mangeshkar","S. P. Balasubrahmanyam"],1641853013,"in"],
+["Pehla Pehla Pyar Hai","Hum Aapke Hain Koun..!",1994,["Salman Khan","Madhuri Dixit"],
+["S. P. Balasubrahmanyam"],1641853032,"in"],
+["Maye Ni Maye","Hum Aapke Hain Koun..!",1994,["Madhuri Dixit","Salman Khan"],
+["Lata Mangeshkar"],1641853008,"in"],
+["Hum Aapke Hain Koun","Hum Aapke Hain Koun..!",1994,["Madhuri Dixit","Salman Khan"],
+["Lata Mangeshkar","S. P. Balasubrahmanyam"],1641853262,"in"],
+["Joote Do Paise Lo","Hum Aapke Hain Koun..!",1994,["Madhuri Dixit","Salman Khan"],null,null,null,null],
+["Lo Chali Main","Hum Aapke Hain Koun..!",1994,["Madhuri Dixit"],
+["Lata Mangeshkar"],1641853548,"in"],
+["Dhiktana","Hum Aapke Hain Koun..!",1994,["Salman Khan","Madhuri Dixit"],
+["S. P. Balasubrahmanyam"],1641853247,"in"],
+["Tu Cheez Badi Hai Mast Mast","Mohra",1994,["Akshay Kumar","Raveena Tandon"],null,null,null,null],
+["Tip Tip Barsa Paani","Mohra",1994,["Akshay Kumar","Raveena Tandon"],
+["Alka Yagnik","Udit Narayan"],1128665304,"in"],
+["Chura Ke Dil Mera","Main Khiladi Tu Anari",1994,["Akshay Kumar","Shilpa Shetty"],
+["Kumar Sanu","Alka Yagnik"],1128728590,"in"],
+["Main Khiladi Tu Anari","Main Khiladi Tu Anari",1994,["Akshay Kumar","Saif Ali Khan"],
+["Abhijeet","Udit Narayan"],1128729497,"in"],
+["Ek Ladki Ko Dekha","1942: A Love Story",1994,["Anil Kapoor","Manisha Koirala"],
+["Kumar Sanu"],1450857379,"in"],
+["Pyar Hua Chupke Se","1942: A Love Story",1994,["Manisha Koirala"],
+["Kavita Krishnamurthy"],1450857506,"in"],
+["Kuch Na Kaho","1942: A Love Story",1994,["Anil Kapoor","Manisha Koirala"],
+["Kumar Sanu"],1450857516,"in"],
+["Rooth Na Jana","1942: A Love Story",1994,["Anil Kapoor","Manisha Koirala"],
+["Kumar Sanu"],1450857513,"in"],
+["Ole Ole","Yeh Dillagi",1994,["Saif Ali Khan"],
+["Abhijeet"],1536509708,"in"],
+["Jeeta Tha Jiske Liye","Dilwale",1994,["Ajay Devgn","Raveena Tandon"],
+["Kumar Sanu","Alka Yagnik"],1123608027,"us",null],
+["Badi Mushkil Hai","Anjaam",1994,["Shah Rukh Khan"],
+["Abhijeet"],1537028564,"in",null],
+["Chane Ke Khet Mein","Anjaam",1994,["Madhuri Dixit"],null,null,null,null],
+["Mukkala Muqabla","Hum Se Hai Muqabla",1994,["Prabhu Deva","Nagma"],null,null,null,null],
+["Urvashi Urvashi","Hum Se Hai Muqabla",1994,["Prabhu Deva"],null,null,null,null],
+["Sarkailo Khatiya","Raja Babu",1994,["Govinda","Karisma Kapoor"],null,null,null,null],
+["Raah Mein Unse Mulaqat","Vijaypath",1994,["Ajay Devgn","Tabu"],
+["Kumar Sanu","Alka Yagnik"],1536518241,"in",null],
+["Tujhe Dekha To","Dilwale Dulhania Le Jayenge",1995,["Shah Rukh Khan","Kajol"],
+["Lata Mangeshkar","Kumar Sanu"],1352484512,"in",null],
+["Mehndi Laga Ke Rakhna","Dilwale Dulhania Le Jayenge",1995,["Shah Rukh Khan","Kajol"],
+["Lata Mangeshkar","Udit Narayan"],1352485222,"in",null],
+["Ruk Ja O Dil Deewane","Dilwale Dulhania Le Jayenge",1995,["Shah Rukh Khan","Kajol"],
+["Udit Narayan"],1352485220,"in",null],
+["Ho Gaya Hai Tujhko","Dilwale Dulhania Le Jayenge",1995,["Shah Rukh Khan","Kajol"],
+["Lata Mangeshkar","Udit Narayan"],1352485856,"in",null],
+["Mere Khwabon Mein","Dilwale Dulhania Le Jayenge",1995,["Kajol"],
+["Lata Mangeshkar"],1352485224,"in",null],
+["Zara Sa Jhoom Loon Main","Dilwale Dulhania Le Jayenge",1995,["Shah Rukh Khan","Kajol"],
+["Asha Bhosle","Abhijeet"],1352485479,"in",null],
+["Ghar Aaja Pardesi","Dilwale Dulhania Le Jayenge",1995,["Kajol"],
+["Pamela Chopra","Manpreet Kaur"],1352485841,"in",null],
+["Rangeela Re","Rangeela",1995,["Urmila Matondkar"],
+["Asha Bhosle","Aditya Narayan"],1550793906,"in",null],
+["Tanha Tanha","Rangeela",1995,["Urmila Matondkar"],
+["Asha Bhosle"],1550793908,"in",null],
+["Yaaron Sun Lo Zara","Rangeela",1995,["Aamir Khan","Urmila Matondkar"],
+["Udit Narayan","K. S. Chithra"],1550793909,"in",null],
+["Hai Rama","Rangeela",1995,["Urmila Matondkar","Jackie Shroff"],
+["Hariharan","Swarnalatha"],1550793662,"in",null],
+["Kya Kare Kya Na Kare","Rangeela",1995,["Aamir Khan"],
+["Udit Narayan"],1550793663,"in",null],
+["Bhangra Paa Le","Karan Arjun",1995,["Shah Rukh Khan","Salman Khan"],null,null,null,null],
+["Jaati Hoon Main","Karan Arjun",1995,["Salman Khan","Kajol"],
+["Kumar Sanu","Alka Yagnik"],1536511641,"in",null],
+["Yeh Bandhan To","Karan Arjun",1995,["Shah Rukh Khan","Salman Khan"],
+["Kumar Sanu","Udit Narayan","Alka Yagnik"],1536511646,"in",null],
+["Kehna Hi Kya","Bombay",1995,["Manisha Koirala","Arvind Swamy"],
+["K. S. Chithra"],1442934813,"in",null],
+["Tu Hi Re","Bombay",1995,["Arvind Swamy","Manisha Koirala"],
+["Hariharan","Kavita Krishnamurthy"],1442935093,"in",null],
+["Hamma Hamma","Bombay",1995,["Arvind Swamy","Sonali Bendre"],null,null,null,null],
+["Raja Ko Rani Se Pyar Ho Gaya","Akele Hum Akele Tum",1995,["Aamir Khan","Manisha Koirala"],
+["Udit Narayan","Alka Yagnik"],1124402412,"in",null],
+["Dil Mera Churaya Kyun","Akele Hum Akele Tum",1995,["Aamir Khan","Manisha Koirala"],
+["Kumar Sanu"],1124402832,"in",null],
+["Main To Raste Se Ja Raha Tha","Coolie No. 1",1995,["Govinda","Karisma Kapoor"],
+["Alka Yagnik","Kumar Sanu"],1536517885,"in",null],
+["Husn Hai Suhana","Coolie No. 1",1995,["Govinda","Karisma Kapoor"],
+["Chandana Dixit","Abhijeet"],1536517874,"in",null],
+["Mera Piya Ghar Aaya","Yaraana",1995,["Madhuri Dixit"],
+["Kavita Krishnamurthy"],1529440508,"in",null],
+["Nazrein Mili Dil Dhadka","Raja",1995,["Madhuri Dixit","Sanjay Kapoor"],null,null,null,null],
+["Humko Sirf Tumse Pyaar Hai","Barsaat",1995,["Bobby Deol","Twinkle Khanna"],
+["Kumar Sanu","Alka Yagnik"],1536516739,"in",null],
+["Pardesi Pardesi","Raja Hindustani",1996,["Aamir Khan","Karisma Kapoor"],
+["Udit Narayan","Alka Yagnik","Sapna Awasthi"],1536509762,"in",null],
+["Aaye Ho Meri Zindagi Mein","Raja Hindustani",1996,["Aamir Khan","Karisma Kapoor"],null,null,null,null],
+["Tere Ishq Mein Naachenge","Raja Hindustani",1996,["Aamir Khan","Karisma Kapoor"],
+["Kumar Sanu","Alisha Chinai","Sapna Mukherjee"],1536509856,"in",null],
+["Kitna Pyara Tujhe Rab Ne Banaya","Raja Hindustani",1996,["Aamir Khan","Karisma Kapoor"],null,null,null,null],
+["Poochho Zara Poochho","Raja Hindustani",1996,["Aamir Khan","Karisma Kapoor"],null,null,null,null],
+["Aaj Main Upar","Khamoshi",1996,["Salman Khan","Manisha Koirala"],
+["Kavita Krishnamurthy","Kumar Sanu"],1443529898,"in",null],
+["Baahon Ke Darmiyan","Khamoshi",1996,["Salman Khan","Manisha Koirala"],null,null,null,null],
+["Ghar Se Nikalte Hi","Papa Kehte Hain",1996,["Jugal Hansraj","Mayuri Kango"],
+["Udit Narayan"],1132160224,"in",null],
+["Dil To Pagal Hai","Dil To Pagal Hai",1997,["Shah Rukh Khan","Madhuri Dixit"],
+["Lata Mangeshkar","Udit Narayan"],673575193,"in",null],
+["Bholi Si Surat","Dil To Pagal Hai",1997,["Shah Rukh Khan","Madhuri Dixit"],
+["Lata Mangeshkar","Udit Narayan"],673575198,"in",null],
+["Arey Re Arey","Dil To Pagal Hai",1997,["Shah Rukh Khan","Madhuri Dixit"],null,null,null,null],
+["Koi Ladki Hai","Dil To Pagal Hai",1997,["Shah Rukh Khan","Madhuri Dixit"],
+["Lata Mangeshkar","Udit Narayan"],673575202,"in",null],
+["Le Gayi","Dil To Pagal Hai",1997,["Karisma Kapoor","Shah Rukh Khan"],
+["Asha Bhosle"],673575206,"in",null],
+["Yeh Dil Deewana","Pardes",1997,["Shah Rukh Khan"],
+["Sonu Nigam","Hema Sardesai","Shankar Mahadevan"],1550794922,"in",null],
+["Do Dil Mil Rahe Hain","Pardes",1997,["Shah Rukh Khan","Mahima Chaudhry"],
+["Kumar Sanu"],1550794910,"in",null],
+["Meri Mehbooba","Pardes",1997,["Shah Rukh Khan","Mahima Chaudhry"],
+["Kumar Sanu","Alka Yagnik"],1550794918,"in",null],
+["I Love My India","Pardes",1997,["Mahima Chaudhry","Amrish Puri"],
+["Shankar Mahadevan","Kavita Krishnamurthy","Aditya Narayan","Hariharan"],1550794911,"in",null],
+["Sandese Aate Hai","Border",1997,["Sunny Deol","Suniel Shetty","Akshaye Khanna"],
+["Sonu Nigam","Roop Kumar Rathod"],1128764725,"in",null],
+["Main Koi Aisa Geet Gaoon","Yes Boss",1997,["Shah Rukh Khan","Juhi Chawla"],
+["Abhijeet","Alka Yagnik"],1130320632,"in",null],
+["Chaand Taare","Yes Boss",1997,["Shah Rukh Khan"],
+["Abhijeet"],1130320645,"in",null],
+["Neend Churai Meri","Ishq",1997,["Aamir Khan","Ajay Devgn","Juhi Chawla","Kajol"],null,null,null,null],
+["Mr. Lova Lova","Ishq",1997,["Aamir Khan","Juhi Chawla"],null,null,null,null],
+["Payalay Chunmun","Virasat",1997,["Anil Kapoor","Tabu"],
+["Kumar Sanu","K. S. Chithra"],1337340091,"in",null],
+["Sona Kitna Sona Hai","Hero No. 1",1997,["Govinda","Karisma Kapoor"],
+["Udit Narayan","Poornima"],1536513931,"in",null],
+["Oonchi Hai Building","Judwaa",1997,["Salman Khan","Karisma Kapoor"],
+["Poornima","Anu Malik"],1297435019,"in",null],
+["Tan Tana Tan Tan Tara","Judwaa",1997,["Salman Khan","Rambha"],
+["Abhijeet","Poornima"],1297435022,"in",null],
+["Kuch Kuch Hota Hai","Kuch Kuch Hota Hai",1998,["Shah Rukh Khan","Kajol"],
+["Udit Narayan","Alka Yagnik"],300388376,"in",null],
+["Koi Mil Gaya","Kuch Kuch Hota Hai",1998,["Shah Rukh Khan","Kajol","Rani Mukerji"],
+["Kavita Krishnamurthy","Udit Narayan","Alka Yagnik"],300388432,"in",null],
+["Ladki Badi Anjani Hai","Kuch Kuch Hota Hai",1998,["Shah Rukh Khan","Kajol"],
+["Kumar Sanu","Alka Yagnik"],300388590,"in",null],
+["Saajanji Ghar Aaye","Kuch Kuch Hota Hai",1998,["Shah Rukh Khan","Kajol","Salman Khan"],
+["Kumar Sanu","Alka Yagnik","Kavita Krishnamurthy"],300388449,"in",null],
+["Yeh Ladka Hai Deewana","Kuch Kuch Hota Hai",1998,["Shah Rukh Khan","Kajol","Rani Mukerji"],
+["Udit Narayan","Alka Yagnik"],300388476,"in",null],
+["Tum Paas Aaye","Kuch Kuch Hota Hai",1998,["Shah Rukh Khan","Kajol"],null,null,null,null],
+["Chaiyya Chaiyya","Dil Se..",1998,["Shah Rukh Khan","Malaika Arora"],
+["Sukhwinder Singh","Sapna Awasthi"],1130322151,"in",null],
+["Dil Se Re","Dil Se..",1998,["Shah Rukh Khan","Manisha Koirala"],
+["A. R. Rahman","Anuradha Sriram","Anupama"],1130322222,"in",null],
+["Jiya Jale","Dil Se..",1998,["Preity Zinta"],
+["Lata Mangeshkar","M. G. Sreekumar"],1130322192,"in",null],
+["Satrangi Re","Dil Se..",1998,["Shah Rukh Khan","Manisha Koirala"],null,null,null,null],
+["Ae Ajnabi","Dil Se..",1998,["Shah Rukh Khan","Manisha Koirala"],
+["Udit Narayan","Mahalaxmi Iyer"],1130322244,"in",null],
+["O O Jaane Jaana","Pyaar Kiya To Darna Kya",1998,["Salman Khan"],
+["Kamaal Khan"],1140246746,"in",null],
+["Pyaar Kiya To Darna Kya","Pyaar Kiya To Darna Kya",1998,["Salman Khan","Kajol"],null,null,null,null],
+["Mere Mehboob Mere Sanam","Duplicate",1998,["Shah Rukh Khan","Juhi Chawla"],
+["Udit Narayan","Alka Yagnik"],1337271604,"in",null],
+["Ankhiyon Se Goli Maare","Dulhe Raja",1998,["Govinda","Raveena Tandon"],
+["Sonu Nigam","Jaspinder Narula"],1140092551,"in",null],
+["Kisi Disco Mein Jaaye","Bade Miyan Chote Miyan",1998,["Govinda","Raveena Tandon"],
+["Alka Yagnik","Udit Narayan"],1550795051,"in",null],
+["Chamma Chamma","China Gate",1998,["Urmila Matondkar"],
+["Alka Yagnik","Vinod Rathod","Shankar Mahadevan"],1537403788,"in",null],
+["Sapne Mein Milti Hai","Satya",1998,["Urmila Matondkar","J. D. Chakravarthy"],null,null,null,null],
+["Goli Maar Bheje Mein","Satya",1998,["Manoj Bajpayee"],null,null,null,null],
+["Aati Kya Khandala","Ghulam",1998,["Aamir Khan","Rani Mukerji"],
+["Aamir Khan","Alka Yagnik"],1541319752,"in",null],
+["Aankhon Se Tune Yeh Kya Keh Diya","Ghulam",1998,["Aamir Khan","Rani Mukerji"],
+["Kumar Sanu","Alka Yagnik"],1541319751,"in",null],
+["Pyaar To Hona Hi Tha","Pyaar To Hona Hi Tha",1998,["Ajay Devgn","Kajol"],
+["Remo Fernandes","Jaspinder Narula"],212790663,"in",null],
+["Ajnabi Mujhko Itna Bata","Pyaar To Hona Hi Tha",1998,["Ajay Devgn","Kajol"],null,null,null,null],
+["Soldier Soldier","Soldier",1998,["Bobby Deol","Preity Zinta"],
+["Kumar Sanu","Alka Yagnik"],1537470657,"in",null],
+["Chori Chori Jab Nazrein Mili","Kareeb",1998,["Bobby Deol","Neha"],
+["Kumar Sanu","Sanjivani"],1545676627,"in",null],
+["Nimbooda","Hum Dil De Chuke Sanam",1999,["Aishwarya Rai"],
+["Kavita Krishnamurthy","Karsan Sargathia"],1120781022,"in",null],
+["Aankhon Ki Gustakhiyan","Hum Dil De Chuke Sanam",1999,["Salman Khan","Aishwarya Rai"],
+["Kumar Sanu","Kavita Krishnamurthy"],1120781026,"in",null],
+["Chand Chhupa Badal Mein","Hum Dil De Chuke Sanam",1999,["Salman Khan","Aishwarya Rai"],
+["Udit Narayan","Alka Yagnik"],1120781021,"in",null],
+["Tadap Tadap","Hum Dil De Chuke Sanam",1999,["Salman Khan"],
+["KK","Dominique"],1120781046,"in",null],
+["Dholi Taro","Hum Dil De Chuke Sanam",1999,["Aishwarya Rai","Salman Khan"],
+["Kavita Krishnamurthy","Vinod Rathod","Karsan Sargathia"],1120781031,"in",null],
+["Kaipoche","Hum Dil De Chuke Sanam",1999,["Salman Khan","Aishwarya Rai"],
+["Shankar Mahadevan","Damyanti Bardai","KK","Jyotsna Hardikar"],1120781036,"in",null],
+["Taal Se Taal Mila","Taal",1999,["Aishwarya Rai","Akshaye Khanna"],
+["Alka Yagnik","Udit Narayan"],1536519898,"in",null],
+["Ramta Jogi","Taal",1999,["Aishwarya Rai","Anil Kapoor"],
+["Sukhwinder Singh","Alka Yagnik"],1536519896,"in",null],
+["Nahin Saamne","Taal",1999,["Aishwarya Rai","Akshaye Khanna"],
+["Hariharan","Sukhwinder Singh"],1536519878,"in",null],
+["Kahin Aag Lage","Taal",1999,["Aishwarya Rai"],
+["Asha Bhosle","Richa Sharma","Aditya Narayan"],1536519650,"in",null],
+["Ishq Bina","Taal",1999,["Aishwarya Rai","Akshaye Khanna"],
+["Anuradha Sriram","Sujatha","A. R. Rahman","Sonu Nigam"],1536519640,"in",null],
+["Chunari Chunari","Biwi No. 1",1999,["Salman Khan","Sushmita Sen"],null,null,null,null],
+["What Is Mobile Number","Haseena Maan Jaayegi",1999,["Govinda","Karisma Kapoor"],null,null,null,null],
+["Kehna Hai Tumse","Mann",1999,["Aamir Khan","Manisha Koirala"],
+["Udit Narayan","Hema Sardesai"],1537414875,"in",null],
+["Chaha Hai Tujhko","Mann",1999,["Aamir Khan","Manisha Koirala"],null,null,null,null],
+["Tinak Tin Tana","Mann",1999,["Aamir Khan","Manisha Koirala"],
+["Udit Narayan","Alka Yagnik"],1537415052,"in",null],
+["Jo Haal Dil Ka","Sarfarosh",1999,["Aamir Khan","Sonali Bendre"],
+["Kumar Sanu","Alka Yagnik"],1541082163,"in",null],
+["Is Deewane Ladke Ko","Sarfarosh",1999,["Aamir Khan","Sonali Bendre"],
+["Aamir Khan","Alka Yagnik"],1541082161,"in",null],
+["Baadshah O Baadshah","Baadshah",1999,["Shah Rukh Khan","Twinkle Khanna"],
+["Abhijeet"],1125939191,"in",null],
+["Mhare Hiwda","Hum Saath-Saath Hain",1999,["Salman Khan","Karisma Kapoor","Sonali Bendre","Saif Ali Khan","Tabu"],null,null,null,null],
+["Sunoji Dulhan","Hum Saath-Saath Hain",1999,["Salman Khan","Sonali Bendre","Saif Ali Khan","Karisma Kapoor"],
+["Roop Kumar Rathod","Pratima Rao","Udit Narayan"],895067719,"in",null],
+["Jaane Jigar Jaaneman","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],null,null,null,null],
+["Main Duniya Bhula Doonga","Aashiqui",1990,["Rahul Roy","Anu Aggarwal"],
+["Anuradha Paudwal","Kumar Sanu"],1073377444,"in"],
+["Bahut Pyar Karte Hain","Saajan",1991,["Salman Khan","Madhuri Dixit"],null,null,null,null],
+["Woh Meri Neend","Hum Hain Rahi Pyar Ke",1993,["Aamir Khan","Juhi Chawla"],
+["Sadhana Sargam"],1536813620,"in"],
+["Deewana Dil Deewana","Kabhi Haan Kabhi Naa",1994,["Shah Rukh Khan","Suchitra Krishnamoorthi"],
+["Amit Kumar","Udit Narayan"],274118260,"in"],
+["Imli Ka Boota","Saudagar",1991,["Vivek Mushran","Manisha Koirala"],
+["Sadhana Sargam","Mohammed Aziz"],1410220586,"in"],
+["Kya Ada Kya Jalwe Tere Paaro","Dulhe Raja",1998,["Govinda","Raveena Tandon"],null,null,null,null],
+["Ek Shararat Hone Ko Hai","Duplicate",1998,["Shah Rukh Khan","Juhi Chawla"],
+["Kumar Sanu","Kavita Krishnamurthy"],1337272398,"in",null],
+["Jaata Hai Tu Kahan","Yes Boss",1997,["Shah Rukh Khan","Juhi Chawla"],
+["Abhijeet"],1130320768,"in",null],
+["Akhiyan Milaun Kabhi","Raja",1995,["Madhuri Dixit","Sanjay Kapoor"],null,null,null,null],
+["Na Kajre Ki Dhaar","Mohra",1994,["Suniel Shetty","Poonam Jhawer"],null,null,null,null],
+["O Lal Dupatte Wali","Aankhen",1993,["Govinda","Chunky Pandey"],
+["Kumar Sanu","Sudesh Bhosle","Kavita Krishnamurthy"],1196272237,"in",null],
+["Tujhe Na Dekhun To Chain","Rang",1993,["Kamal Sadanah","Divya Bharti"],null,null,null,null],
+["Ho Nahin Sakta","Diljale",1996,["Ajay Devgn","Sonali Bendre"],null,null,null,null],
+["Tera Rang Balle Balle","Soldier",1998,["Bobby Deol","Preity Zinta"],
+["Jaspinder Narula","Sonu Nigam"],1537470663,"in",null],
+["Dhol Bajne Laga","Virasat",1997,["Anil Kapoor","Tabu"],
+["Udit Narayan","Kavita Krishnamurthy"],1337340804,"in",null],
+["Chanda Re","Sapnay",1997,["Kajol"],
+["Hariharan","Sadhana Sargam"],1338702171,"in",null],
+["Jab Koi Baat Bigad Jaye","Jurm",1990,["Vinod Khanna","Meenakshi Seshadri"],
+["Kumar Sanu","Sadhana Sargam"],1128776441,"in",null],
+["Dekho Zara Dekho","Yeh Dillagi",1994,["Akshay Kumar","Kajol"],
+["Lata Mangeshkar","Kumar Sanu"],1536509476,"in"],
+["Wada Raha Sanam","Khiladi",1992,["Akshay Kumar","Ayesha Jhulka"],null,null,null,null],
+["Wah Wah Ramji","Hum Aapke Hain Koun..!",1994,["Salman Khan","Madhuri Dixit"],
+["Lata Mangeshkar","S. P. Balasubrahmanyam"],1641853270,"in"],
+["Jhonka Hawa Ka","Hum Dil De Chuke Sanam",1999,["Aishwarya Rai","Ajay Devgn"],
+["Hariharan","Kavita Krishnamurthy"],1120781044,"in",null],
+["Ek Duje Ke Vaaste","Dil To Pagal Hai",1997,["Shah Rukh Khan","Madhuri Dixit"],
+["Hariharan","Lata Mangeshkar"],673575203,"in",null],
+["Khambe Jaisi Khadi Hai","Dil",1990,["Aamir Khan","Madhuri Dixit"],
+["Udit Narayan"],1073371972,"in"],
+["Aankh Maarey","Tere Mere Sapne",1996,["Arshad Warsi","Simran"],null,null,null,null],
+["Chandi Ki Daal Par","Hello Brother",1999,["Salman Khan","Rani Mukerji"],
+["Salman Khan","Alka Yagnik"],1536602341,"in",null],
+["Tu Tu Tu Tu Tara","Bol Radha Bol",1992,["Rishi Kapoor","Juhi Chawla"],
+["Kumar Sanu","Poornima"],1536513736,"in",null],
+["Ruk Ruk Ruk","Vijaypath",1994,["Tabu","Ajay Devgn"],
+["Alisha Chinai"],1536518242,"in",null]].map(([title,film,year,actors,singers,id,country,query])=>({title,film,year,actors,singers,id,country,query}));
+
+// Shared leaderboard (Supabase). Leave blank to keep scores in this browser only.
+const LEADERBOARD={url:"https://jebvsyfhlskgisfyzvns.supabase.co",key:"sb_publishable_Q8en0YpS0p0vsOLIpCAwHA_cs1H1j6Z"};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[^a-z0-9 ]/g," ").replace(/h/g,"").replace(/\s+/g," ").trim();
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const BADT=/remix|karaoke|unplugged|instrumental|lo ?fi|\bmix\b|cover|reprise|recreated|banjo|dandia|\bsad\b|female|\bmale\b|revisited|jhankar|version|dialogue|lounge|chill|mashup|slowed/i;
+const BADC=/karaoke|instrumental|lo ?fi|remix|banjo|dandia|jhankar|cover|tribute|unplugged|recreated|disco|non stop|lounge|chill|mashup/i;
+const NOT_SINGERS=new Set(["jatin-lalit","anu malik","nadeem-shravan","nadeem shravan","laxmikant-pyarelal","rajesh roshan","viju shah","anand-milind","shiv-hari","uttam singh","sameer","sameer anjaan","javed akhtar","anand bakshi","rani malik","ismail darbar","vishal bhardwaj","dilip sen-sameer sen","sandeep chowta","dev kohli","indeevar","majrooh sultanpuri","gulzar"]);
+const ALIAS={"kabita krishnamurti":"Kavita Krishnamurthy","kavita krishnamurti":"Kavita Krishnamurthy","s.p. balasubrahmanyam":"S. P. Balasubrahmanyam","k.s. chithra":"K. S. Chithra","a.r. rahman":"A. R. Rahman"};
+const singersFrom=a=>String(a).split(/,| & | and /).map(x=>x.trim()).filter(Boolean).map(x=>ALIAS[x.toLowerCase()]||x).filter(x=>!NOT_SINGERS.has(x.toLowerCase()));
+const FAMOUS=["Lata Mangeshkar","Asha Bhosle","Kumar Sanu","Udit Narayan","Alka Yagnik","Kavita Krishnamurthy","Sonu Nigam","Abhijeet","Anuradha Paudwal","Sadhana Sargam","Hariharan","Sukhwinder Singh","KK","Vinod Rathod","Mohammed Aziz","Amit Kumar","Jaspinder Narula","Roop Kumar Rathod","Ila Arun","Shankar Mahadevan","Hema Sardesai","Kamaal Khan","Bappi Lahiri","S. P. Balasubrahmanyam","K. S. Chithra","Suresh Wadkar","A. R. Rahman","Sapna Awasthi"];
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+
+const audio=new Audio();audio.preload="auto";
+const cache={};let jsonpN=0;
+let state=null,stopAt=0,timer=null;
+
+function jsonp(url){
+  return new Promise((res,rej)=>{
+    const cb="itcb"+(++jsonpN),s=document.createElement("script");
+    const t=setTimeout(()=>{cleanup();rej(new Error("timeout"))},8000);
+    function cleanup(){clearTimeout(t);delete window[cb];s.remove()}
+    window[cb]=d=>{cleanup();res(d)};
+    s.onerror=()=>{cleanup();rej(new Error("network"))};
+    s.src=url+"&callback="+cb;document.head.appendChild(s);
+  });
+}
+async function loadPreviews(songs){
+  for(const country of ["in","us"]){
+    const ids=songs.filter(s=>s.country===country&&!(s.id in cache)).map(s=>s.id);
+    for(let i=0;i<ids.length;i+=50){
+      try{
+        const d=await jsonp("https://itunes.apple.com/lookup?country="+country+"&id="+ids.slice(i,i+50).join(","));
+        for(const r of d.results||[])if(r.previewUrl)cache[r.trackId]={url:r.previewUrl,art:(r.artworkUrl100||"").replace("100x100","200x200")};
+      }catch(e){}
+    }
+  }
+}
+async function findTrack(song){
+  const tw=norm(song.title).split(" ").slice(0,3).join(" "),fw=norm(song.film);
+  const sc=x=>{const cn=norm(x.collectionName||""),tn=norm(x.trackName);let s=0;
+    if(cn===fw||cn.startsWith(fw+" "))s+=4;if(tn.includes("from "+fw))s+=4;
+    if(/original motion picture|soundtrack/i.test(x.collectionName))s+=2;if(/dialogue/i.test(x.collectionName))s-=1;
+    if(/ - (single|ep)$/i.test(x.collectionName)&&!tn.includes("from "+fw))s-=4;return s};
+  for(const country of ["in","us"]){
+    let d;try{d=await jsonp("https://itunes.apple.com/search?media=music&entity=song&limit=25&country="+country+"&term="+encodeURIComponent(song.query||song.title+" "+song.film))}catch(e){continue}
+    const ok=(d.results||[]).filter(x=>x.previewUrl&&norm(x.trackName).includes(tw)&&!BADT.test(x.trackName)&&!BADC.test(x.collectionName||"")&&sc(x)>=4).sort((p,q)=>sc(q)-sc(p));
+    if(ok.length){const r=ok[0];cache[r.trackId]={url:r.previewUrl,art:(r.artworkUrl100||"").replace("100x100","200x200")};song.id=r.trackId;song.country=country;
+      if(!song.singers||!song.singers.length)song.singers=singersFrom(r.artistName);return true}
+  }
+  return false;
+}
+async function prepare(song){
+  if(song.id&&!cache[song.id])await loadPreviews([song]);
+  if(song.id&&cache[song.id])return true;
+  return findTrack(song);
+}
+const mem={};
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){if(v===undefined)return mem[k]??null;mem[k]=v}}
+const players=()=>store("filmiPlayers")||{};
+const keyOf=(n,c)=>n.trim().toLowerCase()+"|"+c.trim().toLowerCase();
+let me=store("filmiCurrent");
+function loadBest(){const p=players()[me];return p?p.best||0:0}
+function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
+  $("best").textContent=p.played?`${p.correct}/${p.played} correct · best ${p.best} pts`:"No games yet"}
+function signIn(){if(me&&players()[me]){showWho();show("setupView")}else{show("signupView");$("firstName").focus()}}
+
+function show(v){for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v)}
+function msg(t){$("msg").textContent=t}
+
+function buildQuestion(song,mode){
+  let kind=mode==="mix"?pick(["film","singer","actor"]):mode;
+  if(kind==="singer"&&!(song.singers&&song.singers.length))kind="film";
+  let answer,pool,prompt;
+  if(kind==="film"){answer=song.film;pool=[...new Set(SONGS.map(s=>s.film))].filter(f=>f!==song.film);prompt="Which film is this song from?"}
+  if(kind==="singer"){answer=pick(song.singers);pool=[...new Set([...FAMOUS,...SONGS.flatMap(s=>s.singers||[])])].filter(x=>!song.singers.includes(x));prompt="Who sings on this track?"}
+  if(kind==="actor"){answer=pick(song.actors);pool=[...new Set(SONGS.flatMap(s=>s.actors))].filter(x=>!song.actors.includes(x));prompt="Who is on screen in this song?"}
+  return {kind,answer,prompt,options:shuffle([answer,...shuffle(pool).slice(0,3)])};
+}
+
+async function start(){
+  $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
+  const total=+$("rounds").value,queue=shuffle(SONGS);
+  await loadPreviews(queue.slice(-(total+20)).filter(s=>s.id));
+  state={mode:$("mode").value,len:+$("len").value,total,ready:[],resolved:false,round:0,score:0,streak:0,correct:0};
+  const st=state;
+  (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
+  while(!st.ready.length&&!st.resolved)await sleep(150);
+  $("startBtn").disabled=false;$("startBtn").textContent="Start the countdown";
+  if(!st.ready.length){msg("Couldn't reach Apple Music. Check your internet connection and try again.");return}
+  show("gameView");next();
+}
+async function next(){
+  if(state.busy)return;state.busy=true;
+  stopClip();
+  $("reveal").classList.add("hide");$("nextBtn").classList.add("hide");$("opts").innerHTML="";
+  if(state.ready.length<=state.round&&!state.resolved){setButtons(false);$("question").textContent="Finding the next tape…";while(state.ready.length<=state.round&&!state.resolved)await sleep(150)}
+  if(state.resolved)state.total=Math.min(state.total,state.ready.length);
+  state.busy=false;
+  if(state.round>=state.total){return finish()}
+  msg("");
+  const song=state.ready[state.round],prev=cache[song.id];
+  state.round++;state.song=song;state.prev=prev;state.answered=false;state.extra=0;
+  state.q=buildQuestion(song,state.mode);
+  $("round").textContent=state.round+" / "+state.total;$("roundLbl").textContent="Song "+state.round;
+  $("question").textContent=state.q.prompt;
+  $("opts").innerHTML=state.q.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("");
+  audio.src=prev.url;state.offset=null;
+  setButtons(true);playClip();
+}
+function setButtons(on){for(const id of ["playBtn","moreBtn","skipBtn"])$(id).disabled=!on}
+
+function playClip(){
+  const go=()=>{
+    if(state.offset==null){const d=audio.duration||30;state.offset=Math.max(0,Math.random()*Math.max(1,d-state.len-8)+3)}
+    audio.currentTime=state.offset;stopAt=state.offset+state.len+state.extra;
+    audio.play().then(()=>{$("tape").classList.add("spin");tick()}).catch(()=>msg("Tap Play to hear the clip."));
+  };
+  if(audio.readyState>=1)go();else audio.addEventListener("loadedmetadata",go,{once:true});
+}
+function tick(){
+  clearInterval(timer);
+  timer=setInterval(()=>{
+    const span=state.len+state.extra,p=Math.min(1,(audio.currentTime-state.offset)/span);
+    $("prog").style.width=(p*100)+"%";
+    if(audio.currentTime>=stopAt||audio.ended)stopClip();
+  },100);
+}
+function stopClip(){audio.pause();clearInterval(timer);$("tape").classList.remove("spin")}
+
+function answer(i){
+  if(state.answered)return;state.answered=true;
+  const chosen=state.q.options[i],ok=chosen===state.q.answer;
+  [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
+  if(ok){state.correct++;state.streak++;state.score+=10+Math.max(0,15-state.len)+Math.min(state.streak-1,5)*2-state.extra}else state.streak=0;
+  $("score").textContent=state.score;$("streak").textContent=state.streak;
+  const s=state.song;
+  $("reveal").innerHTML=`${state.prev.art?`<img alt="" src="${esc(state.prev.art)}">`:""}<div><b>${ok?"Sahi jawab!":"Not quite"} · ${esc(s.title)}</b>
+   <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc(s.actors.join(", "))}</dd></dl></div>`;
+  $("reveal").classList.remove("hide");$("nextBtn").classList.remove("hide");
+  $("nextBtn").textContent=state.round>=state.total?"See my score →":"Next song →";
+  stopAt=Infinity;if(audio.paused){audio.play().then(()=>{$("tape").classList.add("spin")}).catch(()=>{})}
+}
+const online=()=>!!(LEADERBOARD.url&&LEADERBOARD.key);
+function sbHeaders(){const hd={apikey:LEADERBOARD.key,"Content-Type":"application/json"};if(LEADERBOARD.key.startsWith("eyJ"))hd.Authorization="Bearer "+LEADERBOARD.key;return hd}
+async function sb(path,body){
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),10000);
+  try{const r=await fetch(LEADERBOARD.url.replace(/\/$/,"")+"/rest/v1/"+path,{method:body?"POST":"GET",headers:sbHeaders(),body:body?JSON.stringify(body):undefined,signal:ctl.signal});
+    if(!r.ok)throw new Error("HTTP "+r.status);return r.status===204?null:r.json()}finally{clearTimeout(t)}
+}
+function drawBoard(rows,meKey,note){
+  $("lbBody").innerHTML=rows.length?rows.map((p,i)=>`<tr class="${keyOf(p.name,p.city)===meKey?"me":""}"><td class="n">${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.city)}</td><td class="n">${+p.played||0}</td><td class="n">${+p.correct||0}</td></tr>`).join(""):`<tr><td colspan="5">No scores yet.</td></tr>`;
+  $("lbNote").textContent=note;
+}
+function localRows(){return Object.values(players()).filter(p=>p.played>0)
+  .sort((a,b)=>b.correct-a.correct||a.played-b.played||a.name.localeCompare(b.name)).slice(0,20)}
+async function renderBoard(game){
+  if(!online()){drawBoard(localRows(),me,"Totals across all games played in this browser.");return}
+  drawBoard([],me,"Loading the leaderboard…");$("lbBody").innerHTML="";
+  const p=players()[me];
+  try{
+    if(game&&game.played>0)await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.score});
+    const rows=await sb("players?select=name,city,songs_played,songs_correct&order=songs_correct.desc,songs_played.asc,name.asc&limit=20");
+    drawBoard(rows.map(r=>({name:r.name,city:r.city,played:r.songs_played,correct:r.songs_correct})),me,"Top 20 players everywhere, totals across all their games.");
+  }catch(e){
+    drawBoard(localRows(),me,"Couldn't reach the online leaderboard, so this shows players in this browser only. This game's score wasn't saved online.");
+  }
+}
+function finish(){
+  stopClip();show("endView");
+  const all=players(),p=all[me],best=p.best||0,played=state.round;
+  p.played+=Math.max(0,played);p.correct+=state.correct;p.games=(p.games||0)+1;p.best=Math.max(best,state.score);
+  store("filmiPlayers",all);showWho();
+  $("final").textContent=state.score;
+  $("finalNote").textContent=`${state.correct} of ${Math.max(0,played)} correct · `+(state.score>best?"new personal best!":"your best: "+best);
+  renderBoard({played:Math.max(0,played),correct:state.correct,score:state.score});
+  $("roundLbl").textContent="Ready";
+}
+
+$("signupForm").addEventListener("submit",e=>{e.preventDefault();
+  const n=$("firstName").value.trim(),c=$("city").value.trim();
+  if(!n||!c){$("signupErr").textContent="Please enter your first name and city.";return}
+  $("signupErr").textContent="";const all=players(),k=keyOf(n,c);
+  if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,best:0};
+  store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView")});
+$("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
+signIn();
+$("startBtn").addEventListener("click",start);
+$("againBtn").addEventListener("click",()=>{show("setupView")});
+$("nextBtn").addEventListener("click",next);
+$("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
+$("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Longer clip: −5 points if you get it right");playClip()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered){state.streak=0;$("streak").textContent=0}next()});
+$("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
+audio.addEventListener("ended",stopClip);
+audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));
+}
+</script>
+</body>
+</html>
