@@ -78,6 +78,22 @@ input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lb td.n,.lb th.n{text-align:right;font-variant-numeric:tabular-nums}.lb td.n{white-space:nowrap}
 .lb tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent);font-weight:700}
 .lb .note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+.fb-btn{position:fixed;right:14px;bottom:14px;z-index:20;background:var(--ink);color:var(--bg);min-height:42px;padding:0 16px;font-size:14px;box-shadow:0 6px 16px #0003}
+.modal{position:fixed;inset:0;z-index:30;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal.hide{display:none}
+.modal-card{background:var(--bg);color:var(--ink);border-radius:18px;padding:20px;width:100%;max-width:460px;display:grid;gap:12px;box-shadow:0 20px 40px #0005;max-height:calc(100dvh - 32px);overflow:auto}
+.modal-card h2{font:400 26px/1.15 "Yatra One",serif;margin:0}
+.fb-song{background:var(--card);border:2px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;display:grid;gap:6px}
+.fb-song p{margin:0}.fb-song .muted{color:var(--muted)}
+.chk{display:flex;align-items:center;gap:8px;color:var(--ink);font-size:15px;font-weight:600}
+.chk input{width:20px;height:20px;accent-color:var(--mag)}
+textarea{font:16px/1.45 Poppins;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:10px 12px;width:100%;resize:vertical;min-height:110px}
+textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-actions .start{width:auto;margin:0;min-height:46px;padding:0 24px;font-size:16px}
+.btn2{background:transparent;color:var(--ink);border:2px solid var(--line)}
+.ok{color:light-dark(#1b7a3d,#5fd38a);font-size:14px;min-height:1.2em;margin:0}
+main{padding-bottom:80px}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 @media(max-width:600px){
   header{padding:12px 16px 14px;border-bottom-width:4px}header p{font-size:14px;margin-top:2px}
@@ -144,7 +160,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
           <option value="15">15 sec (easy)</option>
         </select>
       </label>
-      <label>Rounds
+      <label>Songs
         <select id="rounds"><option>5</option><option selected>10</option><option>20</option></select>
       </label>
     </div>
@@ -157,7 +173,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <div class="opts" id="opts"></div>
     <div class="reveal hide" id="reveal"></div>
     <div class="controls"><button class="start hide" id="nextBtn">Next song →</button></div>
-    <div class="strip"><span>Correct <strong id="score">0</strong></span><span>Streak <strong id="streak">0</strong></span><span>Round <strong id="round">0</strong></span></div>
+    <div class="strip"><span>Correct <strong id="score">0</strong></span><span>Streak <strong id="streak">0</strong></span><span>Song <strong id="round">0</strong></span></div>
   </section>
 
   <section id="endView" class="hide end">
@@ -172,6 +188,20 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <button class="start" id="againBtn">Play again</button>
   </section>
 </main>
+<button class="fb-btn" id="fbBtn" type="button" aria-haspopup="dialog">Feedback</button>
+<div class="modal hide" id="fbModal" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+  <form class="modal-card" id="fbForm" novalidate>
+    <h2 id="fbTitle">Send feedback</h2>
+    <div class="fb-song hide" id="fbSong">
+      <label class="chk"><input type="checkbox" id="fbAbout" checked> This is about the current song</label>
+      <p id="fbQ"></p>
+      <p class="muted" id="fbA"></p>
+    </div>
+    <label>Your feedback<textarea id="fbText" maxlength="2000" rows="5" placeholder="A wrong answer, a clip that didn't play, an idea…"></textarea></label>
+    <p class="err" id="fbErr" role="alert"></p><p class="ok" id="fbOk" role="status"></p>
+    <div class="modal-actions"><button class="btn2" type="button" id="fbCancel">Cancel</button><button class="start" type="submit" id="fbSend">Send</button></div>
+  </form>
+</div>
 <footer>Clips are Apple Music's official 30-second previews, loaded when you play. You need an internet connection.</footer>
 
 <script>
@@ -603,7 +633,8 @@ function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoC
   $("best").innerHTML=p.played?`Your record: <b>${+p.correct}/${+p.played}</b> correct · current streak <b>${+(p.streak||0)}</b> · best streak <b>${+(p.bestStreak||0)}</b>`:"No games yet. Your record will show here after your first game."}
 function signIn(){if(me&&players()[me]){showWho();show("setupView")}else{show("signupView");$("firstName").focus()}}
 
-function show(v){for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v);
+let view="signupView";
+function show(v){view=v;for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v);
   $("deck").classList.toggle("hide",v!=="gameView");try{window.scrollTo(0,0)}catch(e){}}
 function msg(t){$("msg").textContent=t}
 
@@ -644,7 +675,7 @@ async function next(){
   if(state.round>=state.total){return finish()}
   msg("");
   const song=state.ready[state.round],prev=cache[song.id];
-  state.round++;state.song=song;state.prev=prev;state.answered=false;state.extra=0;
+  state.round++;state.song=song;state.prev=prev;state.answered=false;state.extra=0;state.userAnswer=null;
   state.q=buildQuestion(song,state.mode);
   $("round").textContent=state.round+" / "+state.total;$("roundLbl").textContent="Song "+state.round;
   $("question").textContent=state.q.prompt;
@@ -674,7 +705,7 @@ function stopClip(){audio.pause();clearInterval(timer);$("tape").classList.remov
 
 function answer(i){
   if(state.answered)return;state.answered=true;
-  const chosen=state.q.options[i],ok=chosen===state.q.answer;
+  const chosen=state.q.options[i],ok=chosen===state.q.answer;state.userAnswer=chosen;
   logAnswer(ok?"correct":"wrong");
   [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
   tally(ok);
@@ -749,6 +780,36 @@ function finish(){
   $("roundLbl").textContent="Ready";
 }
 
+const SCREENS={signupView:"signup",setupView:"setup",gameView:"game",endView:"results"};
+let fbOpener=null;
+function songContext(){return view==="gameView"&&state&&state.song&&state.q?state:null}
+function openFeedback(){
+  fbOpener=document.activeElement;const st=songContext();
+  $("fbSong").classList.toggle("hide",!st);
+  if(st){$("fbAbout").checked=true;$("fbQ").textContent=`Song ${st.round}: ${st.q.prompt}`;
+    $("fbA").textContent=st.userAnswer?`Your answer: ${st.userAnswer}`:"Not answered yet";}
+  $("fbErr").textContent="";$("fbOk").textContent="";$("fbSend").disabled=false;
+  $("fbModal").classList.remove("hide");$("fbText").focus();
+}
+function closeFeedback(){$("fbModal").classList.add("hide");if(fbOpener&&fbOpener.focus)fbOpener.focus()}
+$("fbBtn").addEventListener("click",openFeedback);
+$("fbCancel").addEventListener("click",closeFeedback);
+$("fbModal").addEventListener("click",e=>{if(e.target===$("fbModal"))closeFeedback()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("fbModal").classList.contains("hide"))closeFeedback()});
+$("fbForm").addEventListener("submit",async e=>{e.preventDefault();
+  const text=$("fbText").value.trim();$("fbOk").textContent="";
+  if(!text){$("fbErr").textContent="Please write a little feedback first.";return}
+  if(!online()){$("fbErr").textContent="Feedback can't be sent right now.";return}
+  const p=(me&&players()[me])||{},st=$("fbAbout").checked?songContext():null;
+  $("fbErr").textContent="";$("fbSend").disabled=true;$("fbSend").textContent="Sending…";
+  try{
+    await sb("rpc/submit_feedback",{p_screen:SCREENS[view]||"setup",p_message:text,p_player_name:p.name||null,p_player_city:p.city||null,
+      p_song_title:st?st.song.title:null,p_film:st?st.song.film:null,p_track_id:st?st.song.id||null:null,p_clip_url:st&&st.prev?st.prev.url:null,
+      p_question:st?st.q.prompt:null,p_options:st?st.q.options:null,p_user_answer:st?st.userAnswer:null,p_correct_answer:st?st.q.answer:null});
+    $("fbText").value="";$("fbOk").textContent="Thanks! Your feedback was sent.";setTimeout(closeFeedback,1400);
+  }catch(err){$("fbErr").textContent="Sorry, your feedback couldn't be sent. Please try again in a moment."}
+  finally{$("fbSend").disabled=false;$("fbSend").textContent="Send"}
+});
 $("signupForm").addEventListener("submit",e=>{e.preventDefault();
   const n=$("firstName").value.trim(),c=$("city").value.trim();
   if(!n||!c){$("signupErr").textContent="Please enter your first name and city.";return}
@@ -762,7 +823,7 @@ $("againBtn").addEventListener("click",()=>{show("setupView")});
 $("nextBtn").addEventListener("click",next);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
 $("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Playing 5 more seconds");playClip()});
-$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;tally(false);logAnswer("skipped")}next()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.userAnswer="Skipped";tally(false);logAnswer("skipped")}next()});
 $("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
 audio.addEventListener("ended",stopClip);
 audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));
