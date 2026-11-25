@@ -1,6 +1,6 @@
 # Nineties Filmi Quiz
 
-Guess the film, singer or on-screen star from a short clip of a 1990s Bollywood song.
+Guess the film, singer or on-screen star from a short clip of a Bollywood song from the 1990s or 2000s.
 
 Play: https://ramanbhatia.github.io/Filmi-Quiz/
 
