@@ -646,7 +646,7 @@ async function next(){
   $("round").textContent=state.round+" / "+state.total;$("roundLbl").textContent="Song "+state.round;
   $("question").textContent=state.q.prompt;
   $("opts").innerHTML=state.q.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("");
-  audio.src=prev.url;state.offset=null;
+  audio.src=prev.url;state.offset=null;$("playBtn").textContent="▶ Play clip";
   setButtons(true);playClip();
 }
 function setButtons(on){for(const id of ["playBtn","moreBtn","skipBtn"])$(id).disabled=!on}
@@ -655,7 +655,7 @@ function playClip(){
   const go=()=>{
     if(state.offset==null){const d=audio.duration||30;state.offset=Math.max(0,Math.random()*Math.max(1,d-state.len-8)+3)}
     audio.currentTime=state.offset;stopAt=state.offset+state.len+state.extra;
-    audio.play().then(()=>{$("tape").classList.add("spin");tick()}).catch(()=>msg("Tap Play to hear the clip."));
+    audio.play().then(()=>{$("tape").classList.add("spin");$("playBtn").textContent="↻ Replay clip";tick()}).catch(()=>msg("Tap Play to hear the clip."));
   };
   if(audio.readyState>=1)go();else audio.addEventListener("loadedmetadata",go,{once:true});
 }
