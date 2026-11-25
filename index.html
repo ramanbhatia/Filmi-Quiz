@@ -657,6 +657,7 @@ function stopClip(){audio.pause();clearInterval(timer);$("tape").classList.remov
 function answer(i){
   if(state.answered)return;state.answered=true;
   const chosen=state.q.options[i],ok=chosen===state.q.answer;
+  logAnswer(ok?"correct":"wrong");
   [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
   if(ok){state.correct++;state.streak++;state.score+=10+Math.max(0,15-state.len)+Math.min(state.streak-1,5)*2-state.extra}else state.streak=0;
   $("score").textContent=state.score;$("streak").textContent=state.streak;
@@ -673,6 +674,10 @@ async function sb(path,body){
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),10000);
   try{const r=await fetch(LEADERBOARD.url.replace(/\/$/,"")+"/rest/v1/"+path,{method:body?"POST":"GET",headers:sbHeaders(),body:body?JSON.stringify(body):undefined,signal:ctl.signal});
     if(!r.ok)throw new Error("HTTP "+r.status);return r.status===204?null:r.json()}finally{clearTimeout(t)}
+}
+function logAnswer(result){
+  if(!online()||!state||!state.song)return;
+  sb("rpc/record_answer",{p_title:state.song.title,p_film:state.song.film,p_kind:state.q.kind,p_result:result}).catch(()=>{});
 }
 function drawBoard(rows,meKey,note){
   $("lbBody").innerHTML=rows.length?rows.map((p,i)=>`<tr class="${keyOf(p.name,p.city)===meKey?"me":""}"><td class="n">${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.city)}</td><td class="n">${+p.played||0}</td><td class="n">${+p.correct||0}</td></tr>`).join(""):`<tr><td colspan="5">No scores yet.</td></tr>`;
@@ -716,7 +721,7 @@ $("againBtn").addEventListener("click",()=>{show("setupView")});
 $("nextBtn").addEventListener("click",next);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
 $("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Longer clip: −5 points if you get it right");playClip()});
-$("skipBtn").addEventListener("click",()=>{if(!state.answered){state.streak=0;$("streak").textContent=0}next()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.streak=0;$("streak").textContent=0;state.answered=true;logAnswer("skipped")}next()});
 $("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
 audio.addEventListener("ended",stopClip);
 audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));
