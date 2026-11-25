@@ -77,7 +77,19 @@ input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lb tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent);font-weight:700}
 .lb .note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
-@media(max-width:600px){.lb th,.lb td{padding:8px 6px;font-size:14px}.opts,.setup{grid-template-columns:minmax(0,1fr)}.reel{width:58px;height:58px}.window{height:80px}}
+@media(max-width:600px){
+  header{padding:12px 16px 14px;border-bottom-width:4px}header p{font-size:14px;margin-top:2px}
+  main{padding:14px 14px 40px}
+  .deck{padding:12px;border-radius:18px}.tape{padding:10px;border-radius:12px}
+  .window{height:60px;margin:10px auto 2px}.reel{width:46px;height:46px}
+  .controls{gap:8px;margin-top:12px;flex-wrap:nowrap}.controls button{padding:0 14px}.play{min-width:0;flex:1}
+  #nextBtn{flex:1}
+  .q{margin:14px 0 10px}
+  .opts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.opt{min-height:54px;padding:8px 10px;font-size:15px;line-height:1.25}
+  .setup{grid-template-columns:minmax(0,1fr)}
+  .reveal{padding:10px;gap:10px}.reveal img{width:64px;height:64px}
+  .lb th,.lb td{padding:8px 6px;font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -86,7 +98,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
   <p>Hear a few seconds. Name the film, the singer or the star.</p>
 </header>
 <main>
-  <section class="deck" aria-label="Player">
+  <section class="deck hide" id="deck" aria-label="Player">
     <div class="tape" id="tape">
       <div class="label"><span id="sideA">Side A · 1990–1999</span><span id="roundLbl">Ready</span></div>
       <div class="window"><div class="reel"></div><div class="reel"></div></div>
@@ -136,6 +148,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
         <select disabled><option id="best">—</option></select>
       </label>
     </div>
+    <p class="err" id="setupMsg" role="alert"></p>
     <button class="start" id="startBtn">Start the countdown</button>
   </section>
 
@@ -591,7 +604,8 @@ function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoC
   $("best").textContent=p.played?`${p.correct}/${p.played} correct · best ${p.best} pts`:"No games yet"}
 function signIn(){if(me&&players()[me]){showWho();show("setupView")}else{show("signupView");$("firstName").focus()}}
 
-function show(v){for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v)}
+function show(v){for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v);
+  $("deck").classList.toggle("hide",v!=="gameView");try{window.scrollTo(0,0)}catch(e){}}
 function msg(t){$("msg").textContent=t}
 
 function buildQuestion(song,mode){
@@ -613,7 +627,8 @@ async function start(){
   (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
   while(!st.ready.length&&!st.resolved)await sleep(150);
   $("startBtn").disabled=false;$("startBtn").textContent="Start the countdown";
-  if(!st.ready.length){msg("Couldn't reach Apple Music. Check your internet connection and try again.");return}
+  if(!st.ready.length){$("setupMsg").textContent="Couldn't reach Apple Music. Check your internet connection and try again.";return}
+  $("setupMsg").textContent="";
   show("gameView");next();
 }
 async function next(){
@@ -666,6 +681,7 @@ function answer(i){
    <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc(s.actors.join(", "))}</dd></dl></div>`;
   $("reveal").classList.remove("hide");$("nextBtn").classList.remove("hide");
   $("nextBtn").textContent=state.round>=state.total?"See my score →":"Next song →";
+  try{$("nextBtn").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}catch(e){}
   stopAt=Infinity;if(audio.paused){audio.play().then(()=>{$("tape").classList.add("spin")}).catch(()=>{})}
 }
 const online=()=>!!(LEADERBOARD.url&&LEADERBOARD.key);
