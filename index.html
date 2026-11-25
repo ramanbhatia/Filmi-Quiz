@@ -73,7 +73,7 @@ input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lb table{width:100%;border-collapse:collapse;margin-top:12px;background:var(--card);border-radius:14px;overflow:hidden;border:2px solid var(--line)}
 .lb th,.lb td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line)}
 .lb th{font-size:13px;color:var(--muted);font-weight:600}
-.lb td.n,.lb th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lb td.n,.lb th.n{text-align:right;font-variant-numeric:tabular-nums}.lb td.n{white-space:nowrap}
 .lb tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent);font-weight:700}
 .lb .note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
@@ -88,7 +88,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
   .opts{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.opt{min-height:54px;padding:8px 10px;font-size:15px;line-height:1.25}
   .setup{grid-template-columns:minmax(0,1fr)}
   .reveal{padding:10px;gap:10px}.reveal img{width:64px;height:64px}
-  .lb th,.lb td{padding:8px 6px;font-size:14px}
+  .lb th,.lb td{padding:8px 5px;font-size:13px}.lb .long{display:none}
 }
 </style>
 </head>
@@ -157,7 +157,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <div class="opts" id="opts"></div>
     <div class="reveal hide" id="reveal"></div>
     <div class="controls"><button class="start hide" id="nextBtn">Next song →</button></div>
-    <div class="strip"><span>Score <strong id="score">0</strong></span><span>Streak <strong id="streak">0</strong></span><span>Round <strong id="round">0</strong></span></div>
+    <div class="strip"><span>Correct <strong id="score">0</strong></span><span>Streak <strong id="streak">0</strong></span><span>Round <strong id="round">0</strong></span></div>
   </section>
 
   <section id="endView" class="hide end">
@@ -166,7 +166,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <p id="finalNote" class="msg"></p>
     <div class="lb">
       <h2>Leaderboard</h2>
-      <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n">Songs played</th><th class="n">Correct</th></tr></thead><tbody id="lbBody"></tbody></table>
+      <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n"><span class="long">Songs </span>played</th><th class="n">Correct</th><th class="n">Best streak</th></tr></thead><tbody id="lbBody"></tbody></table>
       <p class="note" id="lbNote"></p>
     </div>
     <button class="start" id="againBtn">Play again</button>
@@ -599,9 +599,8 @@ function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(
 const players=()=>store("filmiPlayers")||{};
 const keyOf=(n,c)=>n.trim().toLowerCase()+"|"+c.trim().toLowerCase();
 let me=store("filmiCurrent");
-function loadBest(){const p=players()[me];return p?p.best||0:0}
 function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
-  $("best").textContent=p.played?`${p.correct}/${p.played} correct · best ${p.best} pts`:"No games yet"}
+  $("best").textContent=p.played?`${p.correct}/${p.played} correct · streak ${p.streak||0} · best ${p.bestStreak||0}`:"No games yet"}
 function signIn(){if(me&&players()[me]){showWho();show("setupView")}else{show("signupView");$("firstName").focus()}}
 
 function show(v){for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v);
@@ -621,8 +620,12 @@ function buildQuestion(song,mode){
 async function start(){
   $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
   const total=+$("rounds").value,queue=shuffle(SONGS);
-  await loadPreviews(queue.slice(-(total+20)).filter(s=>s.id));
-  state={mode:$("mode").value,len:+$("len").value,total,ready:[],resolved:false,round:0,score:0,streak:0,correct:0};
+  const [,srv]=await Promise.all([loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak()]);
+  const all=players(),pl=all[me];
+  if(srv){pl.streak=srv.current_streak;pl.bestStreak=Math.max(pl.bestStreak||0,srv.best_streak);store("filmiPlayers",all)}
+  state={mode:$("mode").value,len:+$("len").value,total,ready:[],resolved:false,round:0,correct:0,
+    carried:pl.streak||0,run:0,lead:0,leadAlive:true,maxRun:0};
+  $("score").textContent=0;$("streak").textContent=state.carried;
   const st=state;
   (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
   while(!st.ready.length&&!st.resolved)await sleep(150);
@@ -674,13 +677,12 @@ function answer(i){
   const chosen=state.q.options[i],ok=chosen===state.q.answer;
   logAnswer(ok?"correct":"wrong");
   [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
-  if(ok){state.correct++;state.streak++;state.score+=10+Math.max(0,15-state.len)+Math.min(state.streak-1,5)*2-state.extra}else state.streak=0;
-  $("score").textContent=state.score;$("streak").textContent=state.streak;
+  tally(ok);
   const s=state.song;
   $("reveal").innerHTML=`${state.prev.art?`<img alt="" src="${esc(state.prev.art)}">`:""}<div><b>${ok?"Sahi jawab!":"Not quite"} · ${esc(s.title)}</b>
    <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc(s.actors.join(", "))}</dd></dl></div>`;
   $("reveal").classList.remove("hide");$("nextBtn").classList.remove("hide");
-  $("nextBtn").textContent=state.round>=state.total?"See my score →":"Next song →";
+  $("nextBtn").textContent=state.round>=state.total?"See results →":"Next song →";
   try{$("nextBtn").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}catch(e){}
   stopAt=Infinity;if(audio.paused){audio.play().then(()=>{$("tape").classList.add("spin")}).catch(()=>{})}
 }
@@ -691,36 +693,59 @@ async function sb(path,body){
   try{const r=await fetch(LEADERBOARD.url.replace(/\/$/,"")+"/rest/v1/"+path,{method:body?"POST":"GET",headers:sbHeaders(),body:body?JSON.stringify(body):undefined,signal:ctl.signal});
     if(!r.ok)throw new Error("HTTP "+r.status);return r.status===204?null:r.json()}finally{clearTimeout(t)}
 }
+const curStreak=()=>state.leadAlive?state.carried+state.run:state.run;
+function tally(ok){
+  if(ok){state.correct++;state.run++;state.maxRun=Math.max(state.maxRun,state.run);if(state.leadAlive)state.lead++}
+  else{state.run=0;state.leadAlive=false}
+  $("score").textContent=state.correct;$("streak").textContent=curStreak();
+}
+async function serverStreak(){
+  if(!online())return null;const p=players()[me];
+  try{const r=await sb("players?select=current_streak,best_streak&name_key=eq."+encodeURIComponent(p.name.trim().toLowerCase())+"&city_key=eq."+encodeURIComponent(p.city.trim().toLowerCase()));
+    return r&&r[0]&&r[0].current_streak!=null?r[0]:null}catch(e){return null}
+}
 function logAnswer(result){
   if(!online()||!state||!state.song)return;
   sb("rpc/record_answer",{p_title:state.song.title,p_film:state.song.film,p_kind:state.q.kind,p_result:result}).catch(()=>{});
 }
 function drawBoard(rows,meKey,note){
-  $("lbBody").innerHTML=rows.length?rows.map((p,i)=>`<tr class="${keyOf(p.name,p.city)===meKey?"me":""}"><td class="n">${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.city)}</td><td class="n">${+p.played||0}</td><td class="n">${+p.correct||0}</td></tr>`).join(""):`<tr><td colspan="5">No scores yet.</td></tr>`;
+  $("lbBody").innerHTML=rows.length?rows.map((p,i)=>`<tr class="${keyOf(p.name,p.city)===meKey?"me":""}"><td class="n">${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.city)}</td><td class="n">${+p.played||0}</td><td class="n">${+p.correct||0}</td><td class="n">${p.bestStreak==null?"—":+p.bestStreak}</td></tr>`).join(""):`<tr><td colspan="6">No scores yet.</td></tr>`;
   $("lbNote").textContent=note;
 }
-function localRows(){return Object.values(players()).filter(p=>p.played>0)
+function localRows(){return Object.values(players()).filter(p=>p.played>0).map(p=>({...p,bestStreak:p.bestStreak||0}))
   .sort((a,b)=>b.correct-a.correct||a.played-b.played||a.name.localeCompare(b.name)).slice(0,20)}
 async function renderBoard(game){
   if(!online()){drawBoard(localRows(),me,"Totals across all games played in this browser.");return}
   drawBoard([],me,"Loading the leaderboard…");$("lbBody").innerHTML="";
-  const p=players()[me];
+  const all=players(),p=all[me];
   try{
-    if(game&&game.played>0)await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.score});
-    const rows=await sb("players?select=name,city,songs_played,songs_correct&order=songs_correct.desc,songs_played.asc,name.asc&limit=20");
-    drawBoard(rows.map(r=>({name:r.name,city:r.city,played:r.songs_played,correct:r.songs_correct})),me,"Top 20 players everywhere, totals across all their games.");
+    if(game&&game.played>0){
+      let res=null;
+      try{res=await sb("rpc/record_game_v2",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun})}
+      catch(e){await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.correct})}
+      if(res&&res.current_streak!=null){p.streak=res.current_streak;p.bestStreak=Math.max(p.bestStreak||0,res.best_streak);store("filmiPlayers",all);showWho();finalNote()}
+    }
+    let rows;
+    try{rows=await sb("players?select=name,city,songs_played,songs_correct,best_streak&order=songs_correct.desc,songs_played.asc,name.asc&limit=20")}
+    catch(e){rows=await sb("players?select=name,city,songs_played,songs_correct&order=songs_correct.desc,songs_played.asc,name.asc&limit=20")}
+    drawBoard(rows.map(r=>({name:r.name,city:r.city,played:r.songs_played,correct:r.songs_correct,bestStreak:r.best_streak})),me,"Top 20 players everywhere, totals across all their games.");
   }catch(e){
     drawBoard(localRows(),me,"Couldn't reach the online leaderboard, so this shows players in this browser only. This game's score wasn't saved online.");
   }
 }
+function finalNote(){
+  const p=players()[me],s=p.streak||0,b=p.bestStreak||0;
+  $("finalNote").textContent=`Current streak: ${s} in a row`+(state.newBest&&b>0?" · new best streak!":` · best streak: ${b}`);
+}
 function finish(){
   stopClip();show("endView");
-  const all=players(),p=all[me],best=p.best||0,played=state.round;
-  p.played+=Math.max(0,played);p.correct+=state.correct;p.games=(p.games||0)+1;p.best=Math.max(best,state.score);
+  const all=players(),p=all[me],played=Math.max(0,state.round),prevBest=p.bestStreak||0;
+  const cur=state.leadAlive&&state.lead===played?state.carried+played:state.run;
+  p.played=(p.played||0)+played;p.correct=(p.correct||0)+state.correct;p.games=(p.games||0)+1;
+  p.streak=cur;p.bestStreak=Math.max(prevBest,state.carried+state.lead,state.maxRun,cur);state.newBest=p.bestStreak>prevBest;
   store("filmiPlayers",all);showWho();
-  $("final").textContent=state.score;
-  $("finalNote").textContent=`${state.correct} of ${Math.max(0,played)} correct · `+(state.score>best?"new personal best!":"your best: "+best);
-  renderBoard({played:Math.max(0,played),correct:state.correct,score:state.score});
+  $("final").textContent=`${state.correct}/${played}`;finalNote();
+  renderBoard({played,correct:state.correct,lead:state.lead,tail:state.run,maxRun:state.maxRun});
   $("roundLbl").textContent="Ready";
 }
 
@@ -728,7 +753,7 @@ $("signupForm").addEventListener("submit",e=>{e.preventDefault();
   const n=$("firstName").value.trim(),c=$("city").value.trim();
   if(!n||!c){$("signupErr").textContent="Please enter your first name and city.";return}
   $("signupErr").textContent="";const all=players(),k=keyOf(n,c);
-  if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,best:0};
+  if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,streak:0,bestStreak:0};
   store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView")});
 $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
 signIn();
@@ -736,8 +761,8 @@ $("startBtn").addEventListener("click",start);
 $("againBtn").addEventListener("click",()=>{show("setupView")});
 $("nextBtn").addEventListener("click",next);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
-$("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Longer clip: −5 points if you get it right");playClip()});
-$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.streak=0;$("streak").textContent=0;state.answered=true;logAnswer("skipped")}next()});
+$("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Playing 5 more seconds");playClip()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;tally(false);logAnswer("skipped")}next()});
 $("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
 audio.addEventListener("ended",stopClip);
 audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));
