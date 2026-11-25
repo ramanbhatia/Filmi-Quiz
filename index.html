@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Nineties Filmi Quiz</title>
+<title>Filmi Flashback</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -112,7 +112,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 </head>
 <body>
 <header>
-  <h1>Nineties Filmi Quiz</h1>
+  <h1>Filmi Flashback</h1>
   <p>Hear a few seconds. Name the film, the singer or the star.</p>
 </header>
 <main>
@@ -147,7 +147,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <div class="setup">
       <label>Era
         <select id="era">
-          <option value="90s">1990s</option>
+          <option value="90s" selected>1990s</option>
           <option value="00s">2000s</option>
           <option value="all">Both</option>
         </select>
@@ -1070,7 +1070,7 @@ function buildQuestion(song,mode){
 
 async function start(){
   $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
-  const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=shuffle(pool);store("filmiEra",era);$("sideA").textContent=ERAS[era].label;
+  const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=shuffle(pool);$("sideA").textContent=ERAS[era].label;
   const [,srv]=await Promise.all([loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak()]);
   const all=players(),pl=all[me];
   if(srv){pl.streak=srv.current_streak;pl.bestStreak=Math.max(pl.bestStreak||0,srv.best_streak);store("filmiPlayers",all)}
@@ -1237,7 +1237,7 @@ $("signupForm").addEventListener("submit",e=>{e.preventDefault();
   if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,streak:0,bestStreak:0};
   store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView")});
 $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
-{const e=store("filmiEra");if(e&&ERAS[e])$("era").value=e;$("sideA").textContent=ERAS[$("era").value].label}
+{$("era").value="90s";$("sideA").textContent=ERAS["90s"].label}
 signIn();
 $("startBtn").addEventListener("click",start);
 $("againBtn").addEventListener("click",()=>{show("setupView")});
