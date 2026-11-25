@@ -53,7 +53,7 @@ button:disabled{opacity:.45;cursor:default}
 .reveal dt{color:var(--muted)}.reveal dd{margin:0}
 .strip{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:22px;color:var(--muted);font-size:14px}
 .strip strong{color:var(--ink);font-size:18px}
-.setup{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.setup{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
 label{font-size:14px;color:var(--muted);display:grid;gap:4px}
 select{font:16px Poppins;min-height:44px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:0 10px}
 .start{background:var(--mag);color:#fff;width:100%;margin-top:16px;min-height:52px;font-size:18px}
@@ -68,6 +68,8 @@ input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .err{color:var(--mag2);font-size:14px;min-height:1.2em;margin:0;text-align:center}
 .who{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
 .who b{font-size:17px}
+.record{margin:8px 0 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,var(--gold) 22%,var(--card));border:2px solid color-mix(in srgb,var(--gold) 45%,var(--line));font-size:15px}
+.record b{color:var(--mag2)}
 .link{background:none;color:var(--mag2);padding:0 6px;min-height:44px;text-decoration:underline;font-weight:600}
 .lb{margin-top:24px;text-align:left}
 .lb table{width:100%;border-collapse:collapse;margin-top:12px;background:var(--card);border-radius:14px;overflow:hidden;border:2px solid var(--line)}
@@ -125,6 +127,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 
   <section id="setupView" class="hide">
     <div class="who"><span>Playing as <b id="whoName"></b> · <span id="whoCity"></span></span><button class="link" id="switchBtn" type="button">Switch player</button></div>
+    <p class="record" id="best" aria-live="polite"></p>
     <div class="setup">
       <label>Guess the
         <select id="mode">
@@ -144,12 +147,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
       <label>Rounds
         <select id="rounds"><option>5</option><option selected>10</option><option>20</option></select>
       </label>
-      <label>Your record
-        <select disabled><option id="best">—</option></select>
-      </label>
     </div>
     <p class="err" id="setupMsg" role="alert"></p>
-    <button class="start" id="startBtn">Start the countdown</button>
+    <button class="start" id="startBtn" aria-label="Play">▶ Play</button>
   </section>
 
   <section id="gameView" class="hide">
@@ -600,7 +600,7 @@ const players=()=>store("filmiPlayers")||{};
 const keyOf=(n,c)=>n.trim().toLowerCase()+"|"+c.trim().toLowerCase();
 let me=store("filmiCurrent");
 function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
-  $("best").textContent=p.played?`${p.correct}/${p.played} correct · streak ${p.streak||0} · best ${p.bestStreak||0}`:"No games yet"}
+  $("best").innerHTML=p.played?`Your record: <b>${+p.correct}/${+p.played}</b> correct · current streak <b>${+(p.streak||0)}</b> · best streak <b>${+(p.bestStreak||0)}</b>`:"No games yet. Your record will show here after your first game."}
 function signIn(){if(me&&players()[me]){showWho();show("setupView")}else{show("signupView");$("firstName").focus()}}
 
 function show(v){for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v);
@@ -629,7 +629,7 @@ async function start(){
   const st=state;
   (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
   while(!st.ready.length&&!st.resolved)await sleep(150);
-  $("startBtn").disabled=false;$("startBtn").textContent="Start the countdown";
+  $("startBtn").disabled=false;$("startBtn").textContent="▶ Play";
   if(!st.ready.length){$("setupMsg").textContent="Couldn't reach Apple Music. Check your internet connection and try again.";return}
   $("setupMsg").textContent="";
   show("gameView");next();
