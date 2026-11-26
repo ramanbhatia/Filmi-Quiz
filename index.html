@@ -3197,9 +3197,15 @@ $("signupForm").addEventListener("submit",e=>{e.preventDefault();
   if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,streak:0,bestStreak:0};
   store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView");refreshDecades()});
 $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
-{$("era").value="90s";setTape("90s")}
+// Remember the player's last tape settings (era, question type, songs, clip length) across games and visits
+const PREF_KEYS=["era","mode","rounds","len"];
+function savePrefs(){try{localStorage.setItem("filmiPrefs",JSON.stringify(Object.fromEntries(PREF_KEYS.map(k=>[k,$(k).value]))))}catch(e){}}
+(()=>{let p={};try{p=JSON.parse(localStorage.getItem("filmiPrefs")||"{}")||{}}catch(e){}
+  for(const k of PREF_KEYS){const el=$(k),v=p[k]!=null?String(p[k]):(k==="era"?"90s":null);if(v!=null&&[...el.options].some(o=>o.value===v))el.value=v}
+  setTape($("era").value);
+  for(const k of PREF_KEYS)$(k).addEventListener("change",()=>{savePrefs();if(k==="era")setTape($("era").value)});})();
 signIn();
-$("startBtn").addEventListener("click",start);
+$("startBtn").addEventListener("click",()=>{savePrefs();start()});
 $("againBtn").addEventListener("click",()=>{show("setupView")});
 $("nextBtn").addEventListener("click",goNext);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
