@@ -85,7 +85,9 @@ select{font:16px Poppins;min-height:44px;border-radius:12px;border:2px solid var
 .fav{max-width:720px;margin:0 auto}
 .favfilm{margin-top:18px}
 .favfilm h3{margin:0 0 6px;font-size:17px}.favfilm h3 span{color:var(--muted);font-weight:400}
-.favfilm li{flex-wrap:wrap}
+.favfilm li{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px 12px;align-items:center}
+.favfilm .fart{grid-row:span 2;width:64px;height:64px;border-radius:10px;background:var(--line);object-fit:cover;align-self:start}
+.favfilm .fa{grid-column:2}
 .favfilm .fa{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .favfilm .am{margin-top:0}
 .favplay{background:var(--mag);color:#fff;min-height:40px;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:700}
@@ -3500,7 +3502,7 @@ async function renderFavs(){
   for(const it of items){const g=it.film+"|"+it.year;if(!groups.has(g))groups.set(g,{film:it.film,year:it.year,at:0,songs:[]});const G=groups.get(g);G.songs.push(it);G.at=Math.max(G.at,it.at)}
   const list=[...groups.values()].sort((a,b)=>b.at-a.at);
   $("favList").innerHTML=list.map(G=>`<div class="favfilm"><h3>${esc(G.film)} <span>(${G.year})</span></h3><ul>${G.songs.sort((a,b)=>b.at-a.at).map(it=>{const c=cache[it.k]||{};
-    return `<li><span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${/^https:\/\/(music|itunes)\.apple\.com\//.test(c.link||"")?`<a class="am" href="${esc(c.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}${wahBtn(it.song,true,true)}</span></li>`}).join("")}</ul></div>`).join("");
+    return `<li>${c.art?`<img class="fart" alt="" loading="lazy" src="${esc(c.art)}">`:`<span class="fart" aria-hidden="true"></span>`}<span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${/^https:\/\/(music|itunes)\.apple\.com\//.test(c.link||"")?`<a class="am" href="${esc(c.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}${wahBtn(it.song,true,true)}</span></li>`}).join("")}</ul></div>`).join("");
 }
 document.addEventListener("click",e=>{
   const w=e.target.closest("[data-wah]");
