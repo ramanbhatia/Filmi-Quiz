@@ -25,6 +25,7 @@ main{max-width:720px;margin:0 auto;padding:20px max(4vw,16px) 48px}
 .deck{background:linear-gradient(160deg,#3a1630,#1c0a17);border-radius:22px;padding:22px;box-shadow:0 14px 30px #0004;color:#fff}
 .tape{background:linear-gradient(#ffcc4d,#ff9f00);border-radius:14px;padding:16px;position:relative;box-shadow:inset 0 -6px 0 #0002}
 .label{background:#fff8ea;color:#2a0f22;border-radius:8px;padding:6px 12px;font:600 14px Poppins;display:flex;justify-content:space-between;gap:8px}
+#sideA small{display:block;font-weight:400;font-size:12px;opacity:.75}#roundLbl{white-space:nowrap;align-self:center}
 .window{margin:14px auto 4px;background:#2a0f22;border-radius:40px;height:96px;display:flex;align-items:center;justify-content:space-around;max-width:420px}
 .reel{width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,#fff 0 14%,#2a0f22 15% 30%,#6b3a55 31% 100%);position:relative}
 .reel::before,.reel::after{content:"";position:absolute;inset:44% 8%;background:#fff;border-radius:3px}
@@ -134,7 +135,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 <main>
   <section class="deck hide" id="deck" aria-label="Player">
     <div class="tape" id="tape">
-      <div class="label"><span id="sideA">Vol. 2 · Romance Era · 1990–1999</span><span id="roundLbl">Ready</span></div>
+      <div class="label"><span id="sideA">Vol. 2 · Romance Era<small>1990–1999</small></span><span id="roundLbl">Ready</span></div>
       <div class="window"><div class="reel"></div><div class="reel"></div></div>
       <div class="bar"><i id="prog"></i></div>
     </div>
@@ -2866,6 +2867,7 @@ function show(v){view=v;for(const id of ["signupView","setupView","gameView","en
 function msg(t){$("msg").textContent=t}
 
 const ERAS={"gold":{label:"Vol. 0 · Golden Era · 1950–1979",test:y=>y>=1950&&y<1980},"80s":{label:"Vol. 1 · Disco Era · 1980–1989",test:y=>y>=1980&&y<1990},"90s":{label:"Vol. 2 · Romance Era · 1990–1999",test:y=>y>=1990&&y<2000},"00s":{label:"Vol. 3 · Multiplex Era · 2000–2009",test:y=>y>=2000&&y<2010},"10s":{label:"Vol. 4 · Streaming Era · 2010–2019",test:y=>y>=2010&&y<2020},"all":{label:"Mixtape · 1950–2019",test:()=>true}};
+function setTape(e){const l=(ERAS[e]||ERAS["90s"]).label,i=l.lastIndexOf(" · ");$("sideA").innerHTML=esc(l.slice(0,i))+"<small>"+esc(l.slice(i+3))+"</small>"}
 const eraSongs=e=>SONGS.filter(s=>(ERAS[e]||ERAS["90s"]).test(s.year));
 function buildQuestion(song,mode){
   const P0=state&&state.pool||SONGS,fam=song.year<1980?FAMOUSG:song.year>=2010?FAMOUS10:song.year>=2000?FAMOUS00:song.year<1990?FAMOUS80:FAMOUS;
@@ -2896,7 +2898,7 @@ function balanceDecades(list){
 }
 async function start(){
   $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
-  const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=(era==="gold"?balanceDecades:shuffle)($("mode").value==="actor"?pool.filter(s=>s.actors&&s.actors.length):pool);$("sideA").textContent=ERAS[era].label;
+  const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=(era==="gold"?balanceDecades:shuffle)($("mode").value==="actor"?pool.filter(s=>s.actors&&s.actors.length):pool);setTape(era);
   const [,srv,dec]=await Promise.all([loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak(),serverDecades()]);mergeDecades(dec);
   const all=players(),pl=all[me];
   if(srv){pl.streak=srv.current_streak;pl.bestStreak=Math.max(pl.bestStreak||0,srv.best_streak);store("filmiPlayers",all)}
@@ -3195,7 +3197,7 @@ $("signupForm").addEventListener("submit",e=>{e.preventDefault();
   if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,streak:0,bestStreak:0};
   store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView");refreshDecades()});
 $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
-{$("era").value="90s";$("sideA").textContent=ERAS["90s"].label}
+{$("era").value="90s";setTape("90s")}
 signIn();
 $("startBtn").addEventListener("click",start);
 $("againBtn").addEventListener("click",()=>{show("setupView")});
