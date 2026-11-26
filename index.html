@@ -61,6 +61,35 @@ select{font:16px Poppins;min-height:44px;border-radius:12px;border:2px solid var
 .msg{text-align:center;color:var(--muted);min-height:1.5em;margin-top:10px;font-size:14px}
 .end{text-align:center}.end .big{font:400 clamp(44px,10vw,72px)/1 "Yatra One",serif;color:var(--mag2)}
 .hide{display:none}
+.wah{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:6px 16px;min-height:44px;border-radius:999px;border:2px solid var(--gold);background:transparent;color:var(--ink);font-weight:700;font-size:14px;position:relative;white-space:nowrap}
+.wah:hover{background:color-mix(in srgb,var(--gold) 18%,transparent)}
+.wah[aria-pressed=true]{background:var(--gold);color:#2a0f22;box-shadow:0 0 0 3px color-mix(in srgb,var(--gold) 30%,transparent)}
+.wah .wi{display:inline-block;width:1em;text-align:center}
+.wah.pop{animation:wah-pop .45s ease-out}
+.wah.pop::before,.wah.pop::after{content:"✦";position:absolute;color:var(--gold);font-size:14px;pointer-events:none;animation:wah-fly .6s ease-out forwards}
+.wah.pop::before{left:8px;top:-4px;--dx:-14px;--dy:-14px}.wah.pop::after{right:10px;top:-4px;--dx:14px;--dy:-16px}
+@keyframes wah-pop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes wah-fly{0%{opacity:1;transform:translate(0,0) scale(.6)}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1.3)}}
+@media (prefers-reduced-motion:reduce){.wah.pop,.wah.pop::before,.wah.pop::after{animation:none}}
+.wah.sm{margin-top:0;padding:4px 12px;font-size:13px}
+.favlink{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;min-height:44px;border-radius:14px;border:2px dashed var(--gold);background:transparent;color:var(--ink);font-weight:700}
+.favlink span:first-child{color:var(--gold)}
+.tapelist{margin-top:22px;text-align:left}
+.tapelist h2,.favh{font:400 clamp(24px,4vw,30px)/1.15 "Yatra One",serif;margin:0;text-align:center}
+.tapelist .note,.favsub{text-align:center;color:var(--muted);font-size:14px;margin:6px 0 10px}
+.tapelist ul,.favfilm ul{list-style:none;margin:0;padding:0;background:var(--card);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+.tapelist li,.favfilm li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-top:1px solid var(--line)}
+.tapelist li:first-child,.favfilm li:first-child{border-top:0}
+.tapelist li b,.favfilm li b{display:block;font-size:15px}
+.tapelist li small,.favfilm li small{display:block;color:var(--muted);font-size:13px}
+.fav{max-width:720px;margin:0 auto}
+.favfilm{margin-top:18px}
+.favfilm h3{margin:0 0 6px;font-size:17px}.favfilm h3 span{color:var(--muted);font-weight:400}
+.favfilm li{flex-wrap:wrap}
+.favfilm .fa{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.favfilm .am{margin-top:0}
+.favplay{background:var(--mag);color:#fff;min-height:40px;padding:4px 14px;border-radius:999px;font-size:13px;font-weight:700}
+.favempty{text-align:center;background:var(--card);border:2px dashed var(--line);border-radius:14px;padding:18px;margin-top:16px}
 .credit{margin:4px 0 0;text-align:center;font-size:12px;color:#c9a7b8}
 .am{display:inline-block;margin-top:6px;font-size:14px;font-weight:600;color:var(--mag2)}
 .signup{max-width:420px;margin:24px auto 0;display:grid;gap:14px}
@@ -162,6 +191,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
   <section id="setupView" class="hide">
     <div class="who"><span>Playing as <b id="whoName"></b> · <span id="whoCity"></span></span><button class="link" id="switchBtn" type="button">Switch player</button></div>
     <p class="record" id="best" aria-live="polite"></p>
+    <button class="favlink" id="favOpen" type="button"><span aria-hidden="true">✦</span> My Great Song! List <span id="favCount"></span></button>
     <div class="setup">
       <label>Era
         <select id="era">
@@ -208,12 +238,25 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <p class="q">That's the end of the tape</p>
     <div class="big" id="final">0</div>
     <p id="finalNote" class="msg"></p>
+    <div class="tapelist hide" id="tapeList">
+      <h2>Songs on this tape</h2>
+      <p class="note">Loved one? Tap <b>Wah! Great Song!</b> to save it to your list.</p>
+      <ul id="tapeSongs"></ul>
+      <button class="favlink" id="favOpen2" type="button"><span aria-hidden="true">✦</span> Open My Great Song! List</button>
+    </div>
     <div class="lb">
       <h2>Leaderboard</h2>
       <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n"><span class="long">Songs </span>played</th><th class="n">Correct</th><th class="n">Best streak</th></tr></thead><tbody id="lbBody"></tbody></table>
       <p class="note" id="lbNote"></p>
     </div>
     <button class="start" id="againBtn">Play again</button>
+  </section>
+
+  <section id="favView" class="hide fav">
+    <button class="link" id="favBack" type="button">← Back</button>
+    <h2 class="favh">My Great Song! List</h2>
+    <p class="favsub" id="favNote"></p>
+    <div id="favList"></div>
   </section>
 </main>
 <button class="fb-btn" id="fbBtn" type="button" aria-haspopup="dialog">Feedback</button>
@@ -3068,13 +3111,13 @@ function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(
 const players=()=>store("filmiPlayers")||{};
 const keyOf=(n,c)=>n.trim().toLowerCase()+"|"+c.trim().toLowerCase();
 let me=store("filmiCurrent");
-function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
+function showWho(){const p=players()[me];updateFavCount();$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
   $("best").innerHTML=p.played?`Your record: <b>${+p.correct}/${+p.played}</b> correct · current streak <b>${+(p.streak||0)}</b> · best streak <b>${+(p.bestStreak||0)}</b>`+((b=>b?` · title <b>${esc(b.t.t)}</b>`:"")(bestTitle(p))):"No games yet. Your record will show here after your first game."}
 function refreshDecades(){serverDecades().then(r=>{if(r&&r.length&&me&&players()[me]){mergeDecades(r);showWho()}})}
-function signIn(){if(me&&players()[me]){showWho();show("setupView");refreshDecades()}else{show("signupView");$("firstName").focus()}}
+function signIn(){if(me&&players()[me]){showWho();show("setupView");refreshDecades();refreshFavs()}else{show("signupView");$("firstName").focus()}}
 
 let view="signupView";
-function show(v){view=v;for(const id of ["signupView","setupView","gameView","endView"])$(id).classList.toggle("hide",id!==v);
+function show(v){view=v;for(const id of ["signupView","setupView","gameView","endView","favView"])$(id).classList.toggle("hide",id!==v);
   $("deck").classList.toggle("hide",v!=="gameView");try{window.scrollTo(0,0)}catch(e){}}
 function msg(t){$("msg").textContent=t}
 
@@ -3171,7 +3214,7 @@ function answer(i){
   tally(ok);countDecade(state.song,ok);
   const s=state.song;
   $("reveal").innerHTML=`${state.prev.art?`<img alt="" src="${esc(state.prev.art)}">`:""}<div><b>${ok?"Sahi jawab!":"Not quite"} · ${esc(s.title)}</b>
-   <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc((s.actors||[]).join(", ")||"—")}</dd></dl>${/^https:\/\/(music|itunes)\.apple\.com\//.test(state.prev.link||"")?`<a class="am" href="${esc(state.prev.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}</div>`;
+   <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc((s.actors||[]).join(", ")||"—")}</dd></dl>${/^https:\/\/(music|itunes)\.apple\.com\//.test(state.prev.link||"")?`<a class="am" href="${esc(state.prev.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}<div>${wahBtn(s)}</div></div>`;
   $("reveal").classList.remove("hide");$("nextBtn").classList.remove("hide");
   $("nextBtn").textContent=state.round>=state.total?"See results →":"Next song →";
   try{$("nextBtn").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}catch(e){}
@@ -3238,7 +3281,7 @@ function finish(){
   p.played=(p.played||0)+played;p.correct=(p.correct||0)+state.correct;p.games=(p.games||0)+1;
   p.streak=cur;p.bestStreak=Math.max(prevBest,state.carried+state.lead,state.maxRun,cur);state.newBest=p.bestStreak>prevBest;
   store("filmiPlayers",all);showWho();
-  $("final").textContent=`${state.correct}/${played}`;finalNote();
+  $("final").textContent=`${state.correct}/${played}`;finalNote();renderTapeList();
   renderBoard({played,correct:state.correct,lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
   $("roundLbl").textContent="Ready";
 }
@@ -3372,7 +3415,7 @@ function countDecade(song,ok){
   const all=players(),p=all[me],d=decadeOf(song.year);if(!p)return;
   p.dec=p.dec||{};const r=p.dec[d]=p.dec[d]||{played:0,correct:0};
   const g=state.dec[d]=state.dec[d]||{played:0,correct:0};
-  r.played++;g.played++;
+  r.played++;g.played++;(state.seen=state.seen||[]).push(song);
   if(ok){r.correct++;g.correct++;const grp=groupOf(d);if(grp){const t=(TITLES[grp]||[]).find(x=>x.n===groupCorrect(p,grp));if(t)state.unlock={t,d:grp}}}
   store("filmiPlayers",all);
 }
@@ -3401,11 +3444,83 @@ function closeUnlock(){
 }
 function goNext(){if(!$("unlock").classList.contains("hide"))return;if(state&&state.unlock){const u=state.unlock;state.unlock=null;showUnlock(u.t,u.d,next)}else next()}
 $("unlockBtn").addEventListener("click",closeUnlock);
+
+// ---------- My Great Song! List ----------
+const favAudio=new Audio();favAudio.preload="none";let favPlaying=null;
+const favMap=()=>{const p=players()[me];return (p&&p.favs)||{}};
+const isFav=id=>!!favMap()[String(id)];
+const songById=id=>SONGS.find(s=>String(s.id)===String(id));
+function wahBtn(s,sm){const on=isFav(s.id);
+  return `<button type="button" class="wah${sm?" sm":""}" data-wah="${esc(String(s.id))}" aria-pressed="${on}" title="Save to My Great Song! List"><span class="wi" aria-hidden="true">${on?"✓":"✦"}</span>Wah! Great Song!</button>`}
+function updateFavCount(){const n=Object.keys(favMap()).length;$("favCount").textContent=n?`(${n})`:""}
+function paintWah(k){const on=isFav(k);
+  document.querySelectorAll(`[data-wah="${CSS.escape(k)}"]`).forEach(b=>{b.setAttribute("aria-pressed",on);b.querySelector(".wi").textContent=on?"✓":"✦"})}
+function setFav(k,on,meta){
+  const pm=me,all=players(),p=all[pm];if(!p)return;
+  p.favs=p.favs||{};p.favPend=p.favPend||{};
+  if(on)p.favs[k]={t:meta.t,f:meta.f,y:meta.y,at:Date.now()};else delete p.favs[k];
+  p.favPend[k]=on;store("filmiPlayers",all);
+  updateFavCount();paintWah(k);syncFav(pm,k,on,meta);
+}
+async function syncFav(pm,k,on,meta){
+  if(!online())return;const p=players()[pm];if(!p)return;
+  const done=()=>{const all=players(),q=all[pm];if(q&&q.favPend&&q.favPend[k]===on){delete q.favPend[k];store("filmiPlayers",all)}};
+  try{await sb("rpc/set_great_song",{p_name:p.name,p_city:p.city,p_song_id:+k,p_title:meta?meta.t:"-",p_film:meta?meta.f:"-",p_year:meta?+meta.y:2000,p_on:on});done()}
+  catch(e){if(/invalid|list full/.test(e.message))done()}
+}
+async function refreshFavs(){
+  if(!online()||!me)return;const pm=me,p=players()[pm];if(!p)return;
+  let rows;
+  try{rows=await sb("player_great_songs?select=song_id,title,film,year,added_at&name_key=eq."+encodeURIComponent(p.name.trim().toLowerCase())+"&city_key=eq."+encodeURIComponent(p.city.trim().toLowerCase())+"&order=added_at.desc&limit=2000")}catch(e){return}
+  const all=players(),q=all[pm];if(!q||!Array.isArray(rows))return;
+  const pend=q.favPend||{},old=q.favs||{},f={};
+  for(const r of rows)f[String(r.song_id)]={t:r.title,f:r.film,y:r.year,at:Date.parse(r.added_at)||0};
+  for(const [k,on] of Object.entries(pend)){if(on){if(old[k])f[k]=old[k]}else delete f[k]}
+  q.favs=f;store("filmiPlayers",all);
+  for(const [k,on] of Object.entries(pend))syncFav(pm,k,on,f[k]||old[k]);
+  if(pm===me){updateFavCount();document.querySelectorAll("[data-wah]").forEach(b=>paintWah(b.dataset.wah));if(view==="favView")renderFavs()}
+}
+function renderTapeList(){
+  const seen=[...new Map((state.seen||[]).map(s=>[String(s.id),s])).values()];
+  $("tapeList").classList.toggle("hide",!seen.length);
+  $("tapeSongs").innerHTML=seen.map(s=>`<li><span><b>${esc(s.title)}</b><small>${esc(s.film)} (${s.year})</small></span>${wahBtn(s,true)}</li>`).join("");
+}
+function stopFav(){favAudio.pause();if(favPlaying){const b=document.querySelector(`[data-fplay="${CSS.escape(favPlaying)}"]`);if(b)b.textContent="▶ Play clip"}favPlaying=null}
+let favFrom="setupView";
+function openFavs(){favFrom=view;stopClip();show("favView");renderFavs();refreshFavs()}
+async function renderFavs(){
+  const f=favMap(),items=Object.entries(f).map(([k,m])=>{const s=songById(k);
+    return {k,song:s||{id:k,country:"in",title:m.t,film:m.f,year:m.y},title:s?s.title:m.t,film:s?s.film:m.f,year:s?s.year:m.y,singers:s&&s.singers||[],at:m.at||0}});
+  if(!items.length){$("favNote").textContent="";$("favList").innerHTML=`<p class="favempty">Nothing here yet. When a song takes you back, tap <b>✦ Wah! Great Song!</b> after you answer, or on the results screen, and it will be saved here.</p>`;return}
+  $("favNote").textContent=`${items.length} song${items.length>1?"s":""} you loved, grouped by film, newest first.`;
+  await loadPreviews(items.map(i=>i.song).filter(s=>s.id));
+  if(view!=="favView")return;
+  const groups=new Map();
+  for(const it of items){const g=it.film+"|"+it.year;if(!groups.has(g))groups.set(g,{film:it.film,year:it.year,at:0,songs:[]});const G=groups.get(g);G.songs.push(it);G.at=Math.max(G.at,it.at)}
+  const list=[...groups.values()].sort((a,b)=>b.at-a.at);
+  $("favList").innerHTML=list.map(G=>`<div class="favfilm"><h3>${esc(G.film)} <span>(${G.year})</span></h3><ul>${G.songs.sort((a,b)=>b.at-a.at).map(it=>{const c=cache[it.k]||{};
+    return `<li><span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${/^https:\/\/(music|itunes)\.apple\.com\//.test(c.link||"")?`<a class="am" href="${esc(c.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}${wahBtn(it.song,true)}</span></li>`}).join("")}</ul></div>`).join("");
+}
+document.addEventListener("click",e=>{
+  const w=e.target.closest("[data-wah]");
+  if(w){const k=w.dataset.wah,on=!isFav(k),s=songById(k),m=favMap()[k];
+    const meta=s?{t:s.title,f:s.film,y:s.year}:m?{t:m.t,f:m.f,y:m.y}:null;if(!meta)return;
+    setFav(k,on,meta);if(on){w.classList.remove("pop");void w.offsetWidth;w.classList.add("pop")}return}
+  const pb=e.target.closest("[data-fplay]");
+  if(pb){const k=pb.dataset.fplay,c=cache[k];if(favPlaying===k){stopFav();return}
+    stopFav();if(!c||!c.url)return;favAudio.src=c.url;favPlaying=k;pb.textContent="■ Stop";
+    favAudio.play().catch(()=>{stopFav()})}
+});
+favAudio.addEventListener("ended",stopFav);
+$("favOpen").addEventListener("click",openFavs);
+$("favOpen2").addEventListener("click",openFavs);
+$("favBack").addEventListener("click",()=>{stopFav();show(favFrom==="endView"?"endView":"setupView")});
+
 document.addEventListener("keydown",e=>{if($("unlock").classList.contains("hide"))return;if(e.key==="Escape")closeUnlock();else if(e.key==="Tab"){e.preventDefault();$("unlockBtn").focus()}});
 
 const labelOK=(s,max)=>{s=s.trim();const l=s.toLowerCase();return s.length>=1&&s.length<=max&&!/[0-9<>{}()@#$%^&*_+=|\\\/:;"?!~`\[\]]/.test(s)&&!/(https?|www\.|\.com)/.test(l)
   &&!/(fuck|chutiya|chutia|bhenchod|behenchod|madarchod|maderchod|bhosd)/.test(l)&&!/\b(shit|shits|cunt|bitch|asshole|bastard|dick|pussy|slut|whore|fag|gandu|nigg[a-z]*)\b/.test(l)};
-const SCREENS={signupView:"signup",setupView:"setup",gameView:"game",endView:"results"};
+const SCREENS={signupView:"signup",setupView:"setup",gameView:"game",endView:"results",favView:"setup"};
 let fbOpener=null;
 function songContext(){return view==="gameView"&&state&&state.song&&state.q?state:null}
 function openFeedback(){
@@ -3441,7 +3556,7 @@ $("signupForm").addEventListener("submit",e=>{e.preventDefault();
   if(!labelOK(n,30)||!labelOK(c,40)){$("signupErr").textContent="Please use a real first name and city: letters only, no numbers, symbols or links.";return}
   $("signupErr").textContent="";const all=players(),k=keyOf(n,c);
   if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,streak:0,bestStreak:0};
-  store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView");refreshDecades()});
+  store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView");refreshDecades();refreshFavs()});
 $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
 // Remember the player's last tape settings (era, question type, songs, clip length) across games and visits
 const PREF_KEYS=["era","mode","rounds","len"];
