@@ -6,7 +6,7 @@
 create table if not exists public.player_decades (
   name_key   text not null,
   city_key   text not null,
-  decade     text not null check (decade in ('60s','70s','80s','90s','00s','10s')),
+  decade     text not null check (decade in ('50s','60s','70s','80s','90s','00s','10s')),
   played     int  not null default 0 check (played >= 0),
   correct    int  not null default 0 check (correct >= 0),
   updated_at timestamptz not null default now(),
@@ -40,7 +40,7 @@ begin
     raise exception 'invalid decades';
   end if;
   for v_key, v_val in select key, value from json_each(p_decades) loop
-    if v_key not in ('60s','70s','80s','90s','00s','10s') then raise exception 'invalid decades'; end if;
+    if v_key not in ('50s','60s','70s','80s','90s','00s','10s') then raise exception 'invalid decades'; end if;
     v_p := coalesce((v_val->>'played')::int, 0);
     v_c := coalesce((v_val->>'correct')::int, 0);
     if v_p < 0 or v_c < 0 or v_c > v_p then raise exception 'invalid decades'; end if;
