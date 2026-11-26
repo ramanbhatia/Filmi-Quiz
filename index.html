@@ -3450,8 +3450,8 @@ const favAudio=new Audio();favAudio.preload="none";let favPlaying=null;
 const favMap=()=>{const p=players()[me];return (p&&p.favs)||{}};
 const isFav=id=>!!favMap()[String(id)];
 const songById=id=>SONGS.find(s=>String(s.id)===String(id));
-function wahBtn(s,sm){const on=isFav(s.id);
-  return `<button type="button" class="wah${sm?" sm":""}" data-wah="${esc(String(s.id))}" aria-pressed="${on}" title="Save to My Great Song! List"><span class="wi" aria-hidden="true">${on?"✓":"✦"}</span>Wah! Great Song!</button>`}
+function wahBtn(s,sm,short){const on=isFav(s.id);
+  return `<button type="button" class="wah${sm?" sm":""}" data-wah="${esc(String(s.id))}" aria-pressed="${on}" title="Save to My Great Song! List"><span class="wi" aria-hidden="true">${on?"✓":"✦"}</span>${short?`Wah!<span class="sr-only"> Great Song!</span>`:"Wah! Great Song!"}</button>`}
 function updateFavCount(){const n=Object.keys(favMap()).length;$("favCount").textContent=n?`(${n})`:""}
 function paintWah(k){const on=isFav(k);
   document.querySelectorAll(`[data-wah="${CSS.escape(k)}"]`).forEach(b=>{b.setAttribute("aria-pressed",on);b.querySelector(".wi").textContent=on?"✓":"✦"})}
@@ -3493,13 +3493,14 @@ async function renderFavs(){
     return {k,song:s||{id:k,country:"in",title:m.t,film:m.f,year:m.y},title:s?s.title:m.t,film:s?s.film:m.f,year:s?s.year:m.y,singers:s&&s.singers||[],at:m.at||0}});
   if(!items.length){$("favNote").textContent="";$("favList").innerHTML=`<p class="favempty">Nothing here yet. When a song takes you back, tap <b>✦ Wah! Great Song!</b> after you answer, or on the results screen, and it will be saved here.</p>`;return}
   $("favNote").textContent=`${items.length} song${items.length>1?"s":""} you loved, grouped by film, newest first.`;
+  if(!$("favList").querySelector(".favfilm"))$("favList").innerHTML=`<p class="favsub">Loading your songs…</p>`;
   await loadPreviews(items.map(i=>i.song).filter(s=>s.id));
   if(view!=="favView")return;
   const groups=new Map();
   for(const it of items){const g=it.film+"|"+it.year;if(!groups.has(g))groups.set(g,{film:it.film,year:it.year,at:0,songs:[]});const G=groups.get(g);G.songs.push(it);G.at=Math.max(G.at,it.at)}
   const list=[...groups.values()].sort((a,b)=>b.at-a.at);
   $("favList").innerHTML=list.map(G=>`<div class="favfilm"><h3>${esc(G.film)} <span>(${G.year})</span></h3><ul>${G.songs.sort((a,b)=>b.at-a.at).map(it=>{const c=cache[it.k]||{};
-    return `<li><span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${/^https:\/\/(music|itunes)\.apple\.com\//.test(c.link||"")?`<a class="am" href="${esc(c.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}${wahBtn(it.song,true)}</span></li>`}).join("")}</ul></div>`).join("");
+    return `<li><span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${/^https:\/\/(music|itunes)\.apple\.com\//.test(c.link||"")?`<a class="am" href="${esc(c.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}${wahBtn(it.song,true,true)}</span></li>`}).join("")}</ul></div>`).join("");
 }
 document.addEventListener("click",e=>{
   const w=e.target.closest("[data-wah]");
