@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Filmi Flashback</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Yatra+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Yatra+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* VOICE: playful, nostalgic, a Sunday-night Chitrahaar countdown
    IDEA: a 90s cassette deck with a film-poster sleeve
@@ -81,6 +81,19 @@ input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lb tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent);font-weight:700}
 .lb .note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
 .fb-btn{position:fixed;right:14px;bottom:14px;z-index:20;background:var(--ink);color:var(--bg);min-height:42px;padding:0 16px;font-size:14px;box-shadow:0 6px 16px #0003}
+.sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.unlock{position:fixed;inset:0;z-index:40;background:#0b0614cc;display:flex;align-items:center;justify-content:center;padding:16px}
+.ucard{position:relative;width:min(340px,100%,calc((100vh - 32px)*300/520));aspect-ratio:300/520}
+#unlockArt,#unlockArt svg{display:block;width:100%;height:100%}
+#unlockArt svg *{transform-box:fill-box;transform-origin:center}
+#unlockArt .ts{font:400 12px Poppins,system-ui,sans-serif}#unlockArt .th{font:600 14px Poppins,system-ui,sans-serif}
+#unlockBtn{position:absolute;left:27.33%;width:45.34%;top:91.15%;height:6.54%;min-height:0;padding:0;border:0;border-radius:999px;font:600 clamp(12px,4vw,15px) Poppins,system-ui,sans-serif;cursor:pointer;animation:u-rise .4s 2.45s ease-out both}
+#unlockBtn:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@keyframes u-fade{from{opacity:0}}@keyframes u-rise{from{opacity:0;transform:translateY(26px)}}@keyframes u-drift{from{opacity:0;transform:translateX(-70px)}}
+@keyframes u-pop{0%{opacity:0;transform:scale(.55)}70%{opacity:1;transform:scale(1.07)}100%{transform:scale(1)}}
+@keyframes u-twinkle{0%,100%{opacity:.45;transform:scale(.7)}50%{opacity:1;transform:scale(1.2)}}
+@keyframes u-spin{to{transform:rotate(360deg)}}@keyframes u-sway{50%{transform:translateX(9px)}}@keyframes u-pulse{50%{transform:scale(1.06)}}@keyframes u-eq{50%{transform:scaleY(.35)}}
+@media (prefers-reduced-motion:reduce){#unlockArt svg *,#unlockBtn{animation:none!important}}
 .modal{position:fixed;inset:0;z-index:30;background:#0009;display:flex;align-items:center;justify-content:center;padding:16px}
 .modal.hide{display:none}
 .modal-card{background:var(--bg);color:var(--ink);border-radius:18px;padding:20px;width:100%;max-width:460px;display:grid;gap:12px;box-shadow:0 20px 40px #0005;max-height:calc(100dvh - 32px);overflow:auto}
@@ -200,6 +213,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
   </section>
 </main>
 <button class="fb-btn" id="fbBtn" type="button" aria-haspopup="dialog">Feedback</button>
+<div class="unlock hide" id="unlock" role="dialog" aria-modal="true" aria-labelledby="unlockLabel">
+  <div class="ucard"><p class="sr-only" id="unlockLabel"></p><div id="unlockArt"></div><button type="button" id="unlockBtn">Next song</button></div>
+</div>
 <div class="modal hide" id="fbModal" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
   <form class="modal-card" id="fbForm" novalidate>
     <h2 id="fbTitle">Send feedback</h2>
@@ -1731,7 +1747,7 @@ const players=()=>store("filmiPlayers")||{};
 const keyOf=(n,c)=>n.trim().toLowerCase()+"|"+c.trim().toLowerCase();
 let me=store("filmiCurrent");
 function showWho(){const p=players()[me];$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
-  $("best").innerHTML=p.played?`Your record: <b>${+p.correct}/${+p.played}</b> correct · current streak <b>${+(p.streak||0)}</b> · best streak <b>${+(p.bestStreak||0)}</b>`:"No games yet. Your record will show here after your first game."}
+  $("best").innerHTML=p.played?`Your record: <b>${+p.correct}/${+p.played}</b> correct · current streak <b>${+(p.streak||0)}</b> · best streak <b>${+(p.bestStreak||0)}</b>`+((b=>b?` · title <b>${esc(b.t.t)}</b>`:"")(bestTitle(p))):"No games yet. Your record will show here after your first game."}
 function signIn(){if(me&&players()[me]){showWho();show("setupView")}else{show("signupView");$("firstName").focus()}}
 
 let view="signupView";
@@ -1757,11 +1773,11 @@ function buildQuestion(song,mode){
 async function start(){
   $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
   const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=shuffle($("mode").value==="actor"?pool.filter(s=>s.actors&&s.actors.length):pool);$("sideA").textContent=ERAS[era].label;
-  const [,srv]=await Promise.all([loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak()]);
+  const [,srv,dec]=await Promise.all([loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak(),serverDecades()]);mergeDecades(dec);
   const all=players(),pl=all[me];
   if(srv){pl.streak=srv.current_streak;pl.bestStreak=Math.max(pl.bestStreak||0,srv.best_streak);store("filmiPlayers",all)}
   state={pool,mode:$("mode").value,len:+$("len").value,total,ready:[],resolved:false,round:0,correct:0,
-    carried:pl.streak||0,run:0,lead:0,leadAlive:true,maxRun:0};
+    carried:pl.streak||0,run:0,lead:0,leadAlive:true,maxRun:0,dec:{},unlock:null};
   $("score").textContent=0;$("streak").textContent=state.carried;
   const st=state;
   (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
@@ -1814,7 +1830,7 @@ function answer(i){
   const chosen=state.q.options[i],ok=chosen===state.q.answer;state.userAnswer=chosen;
   logAnswer(ok?"correct":"wrong");
   [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
-  tally(ok);
+  tally(ok);countDecade(state.song,ok);
   const s=state.song;
   $("reveal").innerHTML=`${state.prev.art?`<img alt="" src="${esc(state.prev.art)}">`:""}<div><b>${ok?"Sahi jawab!":"Not quite"} · ${esc(s.title)}</b>
    <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc((s.actors||[]).join(", ")||"—")}</dd></dl>${/^https:\/\/(music|itunes)\.apple\.com\//.test(state.prev.link||"")?`<a class="am" href="${esc(state.prev.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}</div>`;
@@ -1862,6 +1878,7 @@ async function renderBoard(game){
       const why=e=>/rate limit/.test(e.message)?"You've saved a lot of games in the last hour, so this one wasn't added to the leaderboard. Try again a bit later.":/invalid name/.test(e.message)?"Your name or city isn't allowed on the leaderboard, so this game wasn't saved online. Tap Switch player to change it.":"";
       try{res=await sb("rpc/record_game_v2",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun})}
       catch(e){saveNote=why(e);if(!saveNote){try{await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.correct})}catch(e2){saveNote=why(e2);if(!saveNote)throw e2}}}
+      if(!saveNote&&game.decades&&Object.keys(game.decades).length)sb("rpc/record_decades",{p_name:p.name,p_city:p.city,p_decades:game.decades}).catch(()=>{});
       if(res&&res.current_streak!=null){p.streak=res.current_streak;p.bestStreak=Math.max(p.bestStreak||0,res.best_streak);store("filmiPlayers",all);showWho();finalNote()}
     }
     let rows;
@@ -1884,9 +1901,98 @@ function finish(){
   p.streak=cur;p.bestStreak=Math.max(prevBest,state.carried+state.lead,state.maxRun,cur);state.newBest=p.bestStreak>prevBest;
   store("filmiPlayers",all);showWho();
   $("final").textContent=`${state.correct}/${played}`;finalNote();
-  renderBoard({played,correct:state.correct,lead:state.lead,tail:state.run,maxRun:state.maxRun});
+  renderBoard({played,correct:state.correct,lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
   $("roundLbl").textContent="Ready";
 }
+
+// ---------- decade titles ----------
+const decadeOf=y=>y<1970?"60s":y<1980?"70s":y<1990?"80s":y<2000?"90s":"00s";
+const DECADE_NAME={"60s":"1960s","70s":"1970s","80s":"1980s","90s":"1990s","00s":"2000s"};
+const U_TIER={b:["#E0A070","#7A4A20","#4A2A10"],s:["#E3E8EF","#5A6478","#2C3660"],g:["#F4C752","#8A5A12","#5B1A47"]};
+const uSp=(x,y,s,d)=>{const a=s*.25;return `<path style="animation:u-pop .4s ${d}s both,u-twinkle 1.8s ${d+.4}s ease-in-out infinite" fill="#FFF6E0" d="M${x} ${y-s} L${x+a} ${y-a} L${x+s} ${y} L${x+a} ${y+a} L${x} ${y+s} L${x-a} ${y+a} L${x-s} ${y} L${x-a} ${y-a} Z"/>`};
+const uBands=(c,y0=20,y1=332)=>{const h=(y1-y0)/c.length;return c.map((v,i)=>`<rect x="190" y="${y0+i*h}" width="300" height="${h+1}" fill="${v}"/>`).join("")};
+const uRects=(a,f)=>a.map(r=>`<rect x="${r[0]}" y="${r[1]}" width="${r[2]}" height="${r[3]}" fill="${f}"/>`).join("");
+const U_SP=[[0,-50],[12.9,-17.8],[47.6,-15.5],[20.9,6.8],[29.4,40.5],[0,22],[-29.4,40.5],[-20.9,6.8],[-47.6,-15.5],[-12.9,-17.8]];
+const uStar=(cx,cy,s)=>U_SP.map(p=>(cx+p[0]*s/50).toFixed(1)+","+(cy+p[1]*s/50).toFixed(1)).join(" ");
+const uNote=(x,y,c,d)=>`<g style="animation:u-rise .6s ${d}s ease-out both"><ellipse cx="${x}" cy="${y}" rx="6" ry="4.5" fill="${c}"/><rect x="${x+4}" y="${y-22}" width="2.5" height="22" fill="${c}"/></g>`;
+const uSpines=(y,x0,x1)=>{const C=["#E23B2E","#F6C343","#3FC1E0","#F4F1EA","#2F6B45","#E84A8A","#1B2A6B"];let s="",i=0;for(let x=x0;x<x1;x+=12,i++)s+=`<rect x="${x}" y="${y+(i%5==2?6:0)}" width="10" height="${i%5==2?38:44}" fill="${C[i%7]}"/>`;return s};
+const uReel=(cx,cy)=>{let h="";for(let k=0;k<6;k++){const a=k*Math.PI/3;h+=`<circle cx="${(cx+28*Math.sin(a)).toFixed(1)}" cy="${(cy-28*Math.cos(a)).toFixed(1)}" r="11" fill="#10142A"/>`}return h};
+const uBulbs=(y,c)=>{let s="";for(let x=228;x<=452;x+=16)s+=`<circle cx="${x}" cy="${y}" r="3" fill="${c}"/>`;return s};
+const uMarquee=(fac,cor,board,txt,txtc,bulb)=>`<rect x="206" y="176" width="268" height="164" fill="${fac}"/><rect x="198" y="168" width="284" height="12" fill="${cor}"/><rect x="222" y="192" width="236" height="52" rx="4" fill="${board}"/>${uBulbs(188,bulb)}${uBulbs(248,bulb)}<text class="th" x="340" y="225" text-anchor="middle" style="fill:${txtc};font-size:20px">${txt}</text><rect x="304" y="262" width="72" height="78" fill="#FFC56B"/><line x1="340" y1="262" x2="340" y2="340" stroke="${fac}" stroke-width="2"/><rect x="226" y="262" width="50" height="64" rx="2" fill="${board}" opacity=".55"/><rect x="404" y="262" width="50" height="64" rx="2" fill="${board}" opacity=".55"/>`;
+const uStars=pts=>pts.map(p=>`<circle cx="${p[0]}" cy="${p[1]}" r="${p[2]||1.3}" fill="#FFFFFF" opacity=".75"/>`).join("");
+const TITLES={"90s":[
+{n:25,t:"Walkman Rookie",tier:"b",sky:["#2E3A6B","#46508A","#6E6AA6","#A784B8","#E3A4B5","#F7C9A8"],
+scene:()=>`<circle cx="340" cy="322" r="72" fill="#FFE6B8" opacity=".2"/><circle cx="340" cy="322" r="40" fill="#FFE6B8"/>${uRects([[190,288,40,52],[230,270,30,70],[260,296,36,44],[296,278,26,62],[322,300,40,40],[362,266,28,74],[390,290,34,50],[424,276,30,64],[454,294,36,46],[366,250,20,16]],"#2A2A48")}${uRects([[238,282,4,5],[270,288,4,5],[302,292,4,5],[370,280,4,5],[432,288,4,5]],"#F7C9A8")}<rect x="190" y="330" width="300" height="210" fill="#34304F"/><rect x="190" y="330" width="300" height="6" fill="#4A4470"/>`,
+obj:()=>`<path d="M268 360 C268 316 412 316 412 360" fill="none" stroke="#1F1F2B" stroke-width="5"/><rect x="276" y="352" width="128" height="98" rx="10" fill="#C9CED6"/><rect x="276" y="352" width="128" height="10" fill="#E0703C"/><rect x="290" y="370" width="100" height="44" rx="6" fill="#2A2A38"/><rect x="326" y="388" width="28" height="8" fill="#6B4A3A"/><g style="animation:u-spin 2s 1.5s linear infinite"><circle cx="316" cy="392" r="10" fill="#E9ECF1"/><rect x="314" y="384" width="4" height="16" fill="#8A92A0"/></g><g style="animation:u-spin 2s 1.5s linear infinite"><circle cx="364" cy="392" r="10" fill="#E9ECF1"/><rect x="362" y="384" width="4" height="16" fill="#8A92A0"/></g>${uRects([[294,424,18,10],[318,424,18,10],[342,424,18,10]],"#8A92A0")}<rect x="366" y="424" width="18" height="10" fill="#E0703C"/><circle cx="268" cy="362" r="13" fill="#E0703C"/><circle cx="412" cy="362" r="13" fill="#E0703C"/>`,
+fx:()=>uSp(250,110,8,1)+uSp(432,150,6,1.2)+uSp(300,80,5,1.4)},
+{n:50,t:"T-Series Collector",tier:"b",sky:["#5A2E1E","#6E3A24","#83472B","#9A5733"],
+scene:()=>`${uSpines(156,210,470)}<rect x="204" y="200" width="272" height="7" fill="#3A1E12"/>${uSpines(256,210,470)}<rect x="204" y="300" width="272" height="7" fill="#3A1E12"/><rect x="190" y="330" width="300" height="210" fill="#2B160E"/><ellipse cx="340" cy="470" rx="130" ry="40" fill="#7A2E3A"/>`,
+obj:()=>`<rect x="262" y="348" width="156" height="104" rx="4" fill="#F4EAD5"/><rect x="262" y="348" width="156" height="22" rx="4" fill="#B3261E"/><text class="ts" x="340" y="363" text-anchor="middle" style="fill:#FFF6E0">Music on cassette</text><rect x="272" y="378" width="60" height="64" fill="#E3A4B5"/><path d="M302 402 c-5-7-15-2-11 6 l11 11 l11-11 c4-8-6-13-11-6z" fill="#B3261E"/>${uRects([[340,384,66,4],[340,394,60,4],[340,404,66,4],[340,414,54,4],[340,424,62,4],[340,434,44,4]],"#9A8F7A")}`,
+fx:()=>uSp(232,120,7,1)+uSp(452,236,6,1.2)+uSp(440,90,5,1.4)},
+{n:75,t:"Mixtape Maker",tier:"b",sky:["#120E2E","#1C1645","#29205C","#3A2A72"],
+scene:()=>`${uStars([[214,50],[252,92],[300,40],[356,72],[404,48],[452,96],[474,58],[236,150,1],[420,140,1],[330,120,1]])}${uRects([[190,276,36,64],[226,256,28,84],[254,288,34,52],[288,262,30,78],[318,292,40,48],[358,250,26,90],[384,280,36,60],[420,266,30,74],[450,286,40,54]],"#0E0B22")}${uRects([[234,270,4,5],[296,280,4,5],[364,266,4,5],[428,282,4,5],[392,298,4,5]],"#F6C343")}<rect x="190" y="330" width="300" height="210" fill="#1E1838"/>`,
+obj:()=>`<path d="M290 352 L290 336 L390 336 L390 352" fill="none" stroke="#4A4A5A" stroke-width="5"/><rect x="236" y="350" width="208" height="100" rx="12" fill="#2B2B36"/><circle cx="284" cy="402" r="30" fill="#15151C" stroke="#4A4A5A" stroke-width="2"/><circle cx="284" cy="402" r="16" fill="#2B2B36"/><circle cx="284" cy="402" r="5" fill="#4A4A5A"/><circle cx="396" cy="402" r="30" fill="#15151C" stroke="#4A4A5A" stroke-width="2"/><circle cx="396" cy="402" r="16" fill="#2B2B36"/><circle cx="396" cy="402" r="5" fill="#4A4A5A"/><rect x="318" y="380" width="44" height="40" rx="4" fill="#4A4A5A"/><g style="animation:u-spin 1.6s 1.5s linear infinite"><circle cx="330" cy="400" r="7" fill="#D9DEE5"/><rect x="329" y="394" width="2" height="12" fill="#4A4A5A"/></g><g style="animation:u-spin 1.6s 1.5s linear infinite"><circle cx="350" cy="400" r="7" fill="#D9DEE5"/><rect x="349" y="394" width="2" height="12" fill="#4A4A5A"/></g><circle cx="340" cy="366" r="4" fill="#FF4D4D" style="animation:u-twinkle 1s 1.5s ease-in-out infinite"/>`,
+fx:()=>uNote(258,320,"#E84A8A",1.4)+uNote(420,310,"#3FC1E0",1.6)+uNote(300,290,"#F6C343",1.8)},
+{n:100,t:"Antakshari Ace",tier:"s",sky:["#3A7BD5","#5A93DE","#84B2E8","#B5D3F2","#E6F0FA"],
+scene:()=>`<circle cx="430" cy="90" r="24" fill="#FFE6A8"/><ellipse cx="252" cy="110" rx="30" ry="10" fill="#FFFFFF" opacity=".9"/><ellipse cx="272" cy="102" rx="18" ry="10" fill="#FFFFFF" opacity=".9"/><path d="M190 300 C240 258 290 280 330 268 S420 248 490 280 L490 340 L190 340 Z" fill="#6FAE6A"/><path d="M190 320 C250 296 330 310 400 300 S470 296 490 304 L490 340 L190 340 Z" fill="#4F955A"/><rect x="190" y="330" width="300" height="210" fill="#3E8A56"/><polygon points="334,330 346,330 470,540 210,540" fill="#55555E"/>${uRects([[339,340,2,8],[338,360,4,12],[337,388,6,16],[336,420,8,20],[335,458,10,26],[334,500,12,30]],"#F6F1E0")}`,
+obj:()=>`<rect x="312" y="348" width="56" height="8" rx="2" fill="#B3261E"/><path d="M290 386 L306 356 L374 356 L392 386 Z" fill="#F6C343"/><path d="M299 384 L311 362 L336 362 L336 384 Z" fill="#BFE3F5"/><path d="M344 384 L344 362 L369 362 L382 384 Z" fill="#BFE3F5"/><rect x="262" y="384" width="156" height="46" rx="12" fill="#F6C343"/><rect x="264" y="396" width="8" height="8" rx="2" fill="#FFF6E0"/><circle cx="298" cy="432" r="13" fill="#222222"/><circle cx="298" cy="432" r="5" fill="#9AA0AA"/><circle cx="382" cy="432" r="13" fill="#222222"/><circle cx="382" cy="432" r="5" fill="#9AA0AA"/>`,
+fx:()=>`<g style="animation:u-pop .4s 1.5s both"><rect x="384" y="296" width="74" height="34" rx="14" fill="#FFFFFF"/><path d="M398 330 L392 342 L410 330 Z" fill="#FFFFFF"/></g>`+uNote(410,318,"#E84A8A",1.7)+uNote(432,318,"#3A7BD5",1.85)+uNote(258,330,"#B3261E",1.9)},
+{n:125,t:"Cable TV Connoisseur",tier:"s",sky:["#1F2A55","#2D3B72","#4A4E8C","#7A5A9C","#B8688F"],
+scene:()=>`${uStars([[220,48],[268,84],[330,52],[396,70],[454,44]])}${uRects([[190,272,64,68],[264,248,72,92],[346,288,30,52],[376,260,60,80],[436,282,54,58]],"#1A1730")}${[[222,260],[300,236],[406,248],[462,270]].map(d=>`<g><path d="M${d[0]-14} ${d[1]} A16 16 0 0 0 ${d[0]+14} ${d[1]} Z" fill="#D9DEE5" transform="rotate(-25 ${d[0]} ${d[1]})"/><line x1="${d[0]}" y1="${d[1]}" x2="${d[0]}" y2="${d[1]+12}" stroke="#D9DEE5" stroke-width="2"/></g>`).join("")}${uRects([[206,290,5,6],[280,270,5,6],[312,300,5,6],[390,280,5,6],[452,300,5,6]],"#FFC56B")}<rect x="190" y="330" width="300" height="210" fill="#22203A"/>`,
+obj:()=>`<line x1="330" y1="348" x2="304" y2="318" stroke="#9AA0AA" stroke-width="2"/><line x1="350" y1="348" x2="378" y2="316" stroke="#9AA0AA" stroke-width="2"/><circle cx="304" cy="318" r="3" fill="#9AA0AA"/><circle cx="378" cy="316" r="3" fill="#9AA0AA"/><rect x="258" y="346" width="164" height="110" rx="14" fill="#4A4452"/><rect x="272" y="360" width="112" height="82" rx="12" fill="#2B2650"/>${[["#E84A8A",40],["#F6C343",56],["#3FC1E0",34],["#E84A8A",62],["#F6C343",44],["#3FC1E0",52],["#E84A8A",30]].map((b,i)=>`<rect x="${282+i*14}" y="${434-b[1]}" width="10" height="${b[1]}" fill="${b[0]}" style="transform-origin:bottom;animation:u-eq ${.6+i*.08}s ${1.5+i*.05}s ease-in-out infinite"/>`).join("")}<circle cx="402" cy="376" r="7" fill="#9AA0AA"/><circle cx="402" cy="398" r="7" fill="#9AA0AA"/>${uRects([[394,416,16,2],[394,422,16,2],[394,428,16,2]],"#9AA0AA")}`,
+fx:()=>uSp(238,120,6,1.1)+uSp(444,140,7,1.3)},
+{n:150,t:"Silver Jubilee Star",tier:"s",sky:["#141A33","#1F2747","#2C3660","#3E4A78"],
+scene:()=>`${uStars([[214,48],[262,92],[318,46],[390,70],[460,52],[440,120,1]])}${uMarquee("#3A3F52","#2C3044","#D9DEE5","Housefull!","#2C3660","#FFF6D6")}<rect x="190" y="340" width="300" height="200" fill="#10142A"/><rect x="304" y="344" width="72" height="20" fill="#FFC56B" opacity=".3"/>`,
+obj:()=>`<g style="animation:u-spin 6s 1.5s linear infinite"><circle cx="340" cy="398" r="50" fill="#C9D0DA" stroke="#8A94A6" stroke-width="2"/>${uReel(340,398)}<circle cx="340" cy="398" r="7" fill="#8A94A6"/></g><polygon points="266,442 278,442 278,464 272,458 266,464" fill="#3E4A78"/><polygon points="414,442 402,442 402,464 408,458 414,464" fill="#3E4A78"/><rect x="274" y="436" width="132" height="24" rx="3" fill="#5A6478"/><text class="ts" x="340" y="452" text-anchor="middle" style="fill:#F4F6FA">Silver jubilee</text>`,
+fx:()=>uSp(236,136,7,1)+uSp(446,150,6,1.2)+uSp(410,330,5,1.4)},
+{n:200,t:"Golden Jubilee Star",tier:"g",sky:["#3A1630","#5B1A47","#8E2A5E","#C94A6A"],
+scene:()=>`${uMarquee("#5A2431","#3E1822","#F6C343","Blockbuster!","#5B1A47","#FFF6D6")}<rect x="190" y="340" width="300" height="200" fill="#24101A"/><rect x="304" y="344" width="72" height="20" fill="#FFC56B" opacity=".35"/>`,
+obj:()=>`<circle cx="340" cy="396" r="58" fill="#F6C343" opacity=".18" style="animation:u-pulse 3s 1.5s ease-in-out infinite"/><path d="M306 364 C284 364 284 394 312 398" fill="none" stroke="#C8902E" stroke-width="5"/><path d="M374 364 C396 364 396 394 368 398" fill="none" stroke="#C8902E" stroke-width="5"/><path d="M304 356 H376 V372 C376 398 360 414 340 416 C320 414 304 398 304 372 Z" fill="#F4C752" stroke="#8A5A12" stroke-width="1.5"/><polygon points="${uStar(340,382,13)}" fill="#FFF6E0"/><rect x="334" y="416" width="12" height="14" fill="#C8902E"/><rect x="312" y="428" width="56" height="10" rx="2" fill="#8A5A12"/><polygon points="266,444 278,444 278,466 272,460 266,466" fill="#5B1A47"/><polygon points="414,444 402,444 402,466 408,460 414,466" fill="#5B1A47"/><rect x="274" y="440" width="132" height="22" rx="3" fill="#8E2A5E"/><text class="ts" x="340" y="455" text-anchor="middle" style="fill:#FBE7B5">Golden jubilee</text>`,
+fx:()=>uSp(234,120,8,1)+uSp(450,140,7,1.15)+uSp(262,340,5,1.3)+uSp(420,352,6,1.45)+uSp(300,160,5,1.6)},
+{n:400,t:"Superstar of the 90s",tier:"g",sky:["#4E163F","#5B1A47","#74225A","#8E2A5E","#AA3864","#C94A6A","#DE6A65","#EE8C5E"],
+scene:()=>`<g style="animation:u-pulse 3s 1s ease-in-out infinite"><circle cx="340" cy="282" r="110" fill="#FFD27A" opacity=".1"/><circle cx="340" cy="282" r="80" fill="#FFD27A" opacity=".18"/><circle cx="340" cy="282" r="56" fill="#FFE29A" opacity=".4"/></g><circle cx="340" cy="282" r="42" fill="#FFE6A8"/><path d="M190 302 L238 254 L272 284 L320 226 L368 286 L410 242 L458 292 L490 268 L490 336 L190 336 Z" fill="#4B2A5C"/><path d="M320 226 L307 242 L316 238 L322 244 L333 240 Z" fill="#FFF3F8"/><path d="M410 242 L399 255 L407 252 L413 257 L421 254 Z" fill="#FFF3F8"/><rect x="190" y="330" width="300" height="210" fill="#2F6B45"/><path d="M190 372 C260 342 330 362 400 350 S470 338 490 346 L490 540 L190 540 Z" fill="#3E8A56"/><g fill="#F7A1C4"><circle cx="214" cy="392" r="3"/><circle cx="452" cy="380" r="3"/><circle cx="226" cy="468" r="3"/><circle cx="458" cy="470" r="3"/></g><g fill="#FFD27A"><circle cx="248" cy="388" r="2.5"/><circle cx="440" cy="398" r="2.5"/><circle cx="474" cy="436" r="2.5"/></g>`,
+obj:()=>`<circle cx="340" cy="402" r="64" fill="#FFD27A" opacity=".25"/><g style="animation:u-pulse 2.4s 1.6s ease-in-out infinite"><polygon points="${uStar(340,404,54)}" fill="#F4C752" stroke="#8A5A12" stroke-width="1.5"/><text class="th" x="340" y="414" text-anchor="middle" style="fill:#5B1A47;font-size:18px">90s</text></g>`,
+fx:()=>`<g style="animation:u-drift .8s .4s ease-out both,u-sway 4s 1.2s ease-in-out infinite"><path d="M190 150 C255 105 300 195 365 152 S455 108 490 146 L490 170 C452 136 420 192 365 177 S258 132 190 176 Z" fill="#F7A1C4" opacity=".8"/></g>`+uSp(250,120,10,1)+uSp(432,100,8,1.15)+uSp(384,248,12,1.3)+uSp(300,206,6,1.45)+uSp(458,219,7,1.6)+uSp(222,251,5,1.75)}
+]};
+function unlockSVG(s){const T=U_TIER[s.tier],fs=Math.min(42,Math.round(250/(0.4*s.t.length)));
+  const font=`font-family:'Great Vibes','Brush Script MT',cursive;font-weight:400;font-size:${fs}px`;
+  return `<svg viewBox="190 20 300 520" width="100%" height="100%" aria-hidden="true" focusable="false"><defs><clipPath id="uclip"><rect x="190" y="20" width="300" height="520" rx="22"/></clipPath></defs><g clip-path="url(#uclip)"><g style="animation:u-fade .4s ease-out both">${uBands(s.sky)}</g><g style="animation:u-rise .6s .3s ease-out both">${s.scene()}</g>${s.fx()}<g style="animation:u-rise .5s 1s cubic-bezier(.2,.8,.3,1.2) both">${s.obj()}</g></g><rect x="190.5" y="20.5" width="299" height="519" rx="22" fill="none" stroke="${T[1]}"/><text class="ts" x="340" y="54" text-anchor="middle" style="fill:#FBE7B5;animation:u-fade .4s 1.3s both">New Title Unlocked</text><g style="animation:u-pop .7s 1.5s ease-out both"><text x="342.5" y="100" text-anchor="middle" style="fill:#1E0718;opacity:.75;${font}">${esc(s.t)}</text><text x="340" y="97" text-anchor="middle" style="fill:${T[0]};stroke:${T[1]};stroke-width:.8px;paint-order:stroke;${font}">${esc(s.t)}</text></g><text class="ts" x="340" y="482" text-anchor="middle" style="fill:#F4F1EA;animation:u-fade .4s 2.2s both">${s.n} correct answers</text></svg>`}
+const titleFor=(d,c)=>{let t=null;for(const x of TITLES[d]||[])if(c>=x.n)t=x;return t};
+function bestTitle(p){let best=null;for(const d of Object.keys(TITLES)){const t=titleFor(d,((p.dec||{})[d]||{}).correct||0);if(t&&(!best||t.n>best.t.n))best={d,t}}return best}
+function countDecade(song,ok){
+  const all=players(),p=all[me],d=decadeOf(song.year);if(!p)return;
+  p.dec=p.dec||{};const r=p.dec[d]=p.dec[d]||{played:0,correct:0};
+  const g=state.dec[d]=state.dec[d]||{played:0,correct:0};
+  r.played++;g.played++;
+  if(ok){r.correct++;g.correct++;const t=(TITLES[d]||[]).find(x=>x.n===r.correct);if(t)state.unlock={t,d}}
+  store("filmiPlayers",all);
+}
+async function serverDecades(){
+  if(!online())return null;const p=players()[me];
+  try{return await sb("player_decades?select=decade,played,correct&name_key=eq."+encodeURIComponent(p.name.trim().toLowerCase())+"&city_key=eq."+encodeURIComponent(p.city.trim().toLowerCase()))}catch(e){return null}
+}
+function mergeDecades(rows){
+  if(!rows||!rows.length)return;const all=players(),p=all[me];p.dec=p.dec||{};
+  for(const r of rows){const l=p.dec[r.decade]=p.dec[r.decade]||{played:0,correct:0};l.played=Math.max(l.played,+r.played||0);l.correct=Math.max(l.correct,+r.correct||0)}
+  store("filmiPlayers",all);
+}
+let unlockOpener=null,unlockThen=null;
+function showUnlock(t,d,then){
+  stopClip();unlockThen=then;unlockOpener=document.activeElement;
+  const T=U_TIER[t.tier],last=state.round>=state.total;
+  $("unlockArt").innerHTML=unlockSVG(t);
+  $("unlockLabel").textContent=`New title unlocked: ${t.t}, for ${t.n} correct answers in the ${DECADE_NAME[d]||d}.`;
+  const b=$("unlockBtn");b.textContent=last?"See results":"Next song";b.style.background=T[0];b.style.color=T[2];
+  b.style.animation="none";void b.offsetWidth;b.style.animation="";
+  $("unlock").classList.remove("hide");b.focus();
+}
+function closeUnlock(){
+  if($("unlock").classList.contains("hide"))return;
+  $("unlock").classList.add("hide");$("unlockArt").innerHTML="";const f=unlockThen;unlockThen=null;if(f)f();
+}
+function goNext(){if(!$("unlock").classList.contains("hide"))return;if(state&&state.unlock){const u=state.unlock;state.unlock=null;showUnlock(u.t,u.d,next)}else next()}
+$("unlockBtn").addEventListener("click",closeUnlock);
+document.addEventListener("keydown",e=>{if($("unlock").classList.contains("hide"))return;if(e.key==="Escape")closeUnlock();else if(e.key==="Tab"){e.preventDefault();$("unlockBtn").focus()}});
 
 const labelOK=(s,max)=>{s=s.trim();const l=s.toLowerCase();return s.length>=1&&s.length<=max&&!/[0-9<>{}()@#$%^&*_+=|\\\/:;"?!~`\[\]]/.test(s)&&!/(https?|www\.|\.com)/.test(l)
   &&!/(fuck|chutiya|chutia|bhenchod|behenchod|madarchod|maderchod|bhosd)/.test(l)&&!/\b(shit|shits|cunt|bitch|asshole|bastard|dick|pussy|slut|whore|fag|gandu|nigg[a-z]*)\b/.test(l)};
@@ -1932,10 +2038,10 @@ $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").v
 signIn();
 $("startBtn").addEventListener("click",start);
 $("againBtn").addEventListener("click",()=>{show("setupView")});
-$("nextBtn").addEventListener("click",next);
+$("nextBtn").addEventListener("click",goNext);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
 $("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Playing 5 more seconds");playClip()});
-$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.userAnswer="Skipped";tally(false);logAnswer("skipped")}next()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.userAnswer="Skipped";tally(false);countDecade(state.song,false);logAnswer("skipped")}goNext()});
 $("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
 audio.addEventListener("ended",stopClip);
 audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));
