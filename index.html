@@ -193,9 +193,8 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
   <section id="setupView" class="hide">
     <div class="who"><span>Playing as <b id="whoName"></b> · <span id="whoCity"></span></span><button class="link" id="switchBtn" type="button">Switch player</button></div>
     <p class="record" id="best" aria-live="polite"></p>
-    <button class="favlink" id="favOpen" type="button"><span aria-hidden="true">✦</span> My Great Song! List <span id="favCount"></span></button>
     <div class="setup">
-      <label>Era
+      <label>Choose an Era
         <select id="era">
           <option value="gold">1950s–70s · Golden Era</option>
           <option value="80s">1980s · Disco Era</option>
@@ -226,6 +225,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     </div>
     <p class="err" id="setupMsg" role="alert"></p>
     <button class="start" id="startBtn" aria-label="Play">▶ Play</button>
+    <button class="favlink" id="favOpen" type="button"><span aria-hidden="true">✦</span> My Great Song! List <span id="favCount"></span></button>
   </section>
 
   <section id="gameView" class="hide">
