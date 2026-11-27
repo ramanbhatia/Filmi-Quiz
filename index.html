@@ -3501,7 +3501,7 @@ $("era").addEventListener("change",()=>{const e=$("era").value;if(!players()[me]
 function viewTitle(g){
   const p=players()[me],t=p&&titleFor(g,groupCorrect(p,g));if(!t)return;
   unlockThen=null;unlockOpener=document.activeElement;viewingTitle=true;
-  const T=U_TIER[t.tier];$("unlockArt").innerHTML=unlockSVG(t,(TITLE_GROUPS[g]||{}).label||g);
+  const T=U_TIER[t.tier];$("unlockArt").innerHTML=unlockSVG(t,(TITLE_GROUPS[g]||{}).label||g).replace(">New Title Unlocked<",">Your Title<");
   $("unlockLabel").textContent=`Your title: ${t.t}, for ${t.n} correct answers in the ${(TITLE_GROUPS[g]||{}).name||g}.`;
   const b=$("unlockBtn");b.textContent="Close";b.style.background=T[0];b.style.color=T[2];b.style.animation="none";void b.offsetWidth;b.style.animation="";
   $("unlock").classList.remove("hide");b.focus();
