@@ -1,6 +1,7 @@
 -- Filmi Flashback: leaderboard with per-era stats and titles.
 -- Paste into Supabase > SQL Editor > New query, then Run. Read-only.
--- Needs skips-setup.sql to have been run first (adds the songs_skipped column).
+-- Needs skips-setup.sql and time-setup.sql to have been run first.
+-- Time columns only cover games played after time-setup.sql was run; they're blank until then.
 -- Skips are only counted from the day skips-setup.sql was run; earlier skips show as answered.
 -- Era columns show "correct/played (pct%)". The Golden Era combines the 1950s, 60s and 70s.
 
@@ -40,6 +41,14 @@ select
   p.songs_played                       as questions_seen,
   p.songs_played - p.songs_skipped     as questions_answered,
   p.songs_skipped                      as questions_skipped,
+  case when p.games_timed > 0 then
+    (p.play_seconds / 3600) || 'h ' || lpad(((p.play_seconds % 3600) / 60)::text, 2, '0') || 'm' end
+                                       as time_played,
+  case when p.games_timed > 0 then
+    (p.play_seconds / p.games_timed / 60) || 'm ' || lpad((p.play_seconds / p.games_timed % 60)::text, 2, '0') || 's' end
+                                       as avg_game_length,
+  round(p.answer_ms / 1000.0 / nullif(p.answers_timed, 0), 1)
+                                       as avg_seconds_to_answer,
   p.songs_correct || '/' || p.songs_played
     || ' (' || coalesce(round(100.0 * p.songs_correct / nullif(p.songs_played, 0)) || '%', '—') || ')' as overall,
   p.best_streak,
@@ -54,5 +63,6 @@ select
   max(f.stat)  filter (where f.era = '10s')  as era_2010s
 from public.players p
 left join fmt f on f.name_key = p.name_key and f.city_key = p.city_key
-group by p.name, p.city, p.games, p.songs_correct, p.songs_played, p.songs_skipped, p.best_streak
+group by p.name, p.city, p.games, p.songs_correct, p.songs_played, p.songs_skipped,
+         p.play_seconds, p.games_timed, p.answer_ms, p.answers_timed, p.best_streak
 order by rank;

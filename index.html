@@ -3238,7 +3238,14 @@ async function next(){
   $("opts").innerHTML=state.q.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("");
   audio.src=prev.url;state.offset=null;$("playBtn").textContent="▶ Play clip";
   setButtons(true);playClip();
+  if(!state.clk)state.clk={ms:0,t0:null};clockRun(true);state.qAt=clockNow();
 }
+// ---------- play-time clock (only counts while a game is on screen and the app is in front) ----------
+function clockRun(on){const c=state&&state.clk;if(!c)return;const now=performance.now();
+  if(c.t0!=null){c.ms+=now-c.t0;c.t0=null}
+  if(on&&!state.done&&!document.hidden&&$("unlock").classList.contains("hide")&&!$("gameView").classList.contains("hide"))c.t0=now}
+const clockNow=()=>{const c=state&&state.clk;return c?c.ms+(c.t0!=null?performance.now()-c.t0:0):0};
+document.addEventListener("visibilitychange",()=>clockRun(!document.hidden));
 function setButtons(on){for(const id of ["playBtn","moreBtn","skipBtn"])$(id).disabled=!on}
 
 function playClip(){
@@ -3262,6 +3269,7 @@ function stopClip(){audio.pause();clearInterval(timer);$("tape").classList.remov
 function answer(i){
   if(state.answered)return;state.answered=true;
   const chosen=state.q.options[i],ok=chosen===state.q.answer;state.userAnswer=chosen;
+  {const dt=clockNow()-(state.qAt||0);if(state.clk&&dt>0&&dt<120000){state.ansMs=(state.ansMs||0)+dt;state.ansN=(state.ansN||0)+1}}
   logAnswer(ok?"correct":"wrong");
   [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
   tally(ok);countDecade(state.song,ok);
@@ -3311,9 +3319,13 @@ async function renderBoard(game){
     if(game&&game.played>0){
       let res=null;
       const why=e=>/rate limit/.test(e.message)?"You've saved a lot of games in the last hour, so this one wasn't added to the leaderboard. Try again a bit later.":/invalid name/.test(e.message)?"Your name or city isn't allowed on the leaderboard, so this game wasn't saved online. Tap Switch player to change it.":"";
-      try{res=await sb("rpc/record_game_v3",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun,p_skipped:game.skipped||0})}
-      catch(e3){try{res=await sb("rpc/record_game_v2",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun})}
-      catch(e){saveNote=why(e);if(!saveNote){try{await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.correct})}catch(e2){saveNote=why(e2);if(!saveNote)throw e2}}}}
+      // newest save function first; older ones keep working until the matching SQL has been run
+      const base={p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun};
+      const tries=[["record_game_v4",{...base,p_skipped:game.skipped||0,p_seconds:game.seconds||0,p_answer_ms:game.answerMs||0,p_answers_timed:game.answersTimed||0}],
+        ["record_game_v3",{...base,p_skipped:game.skipped||0}],["record_game_v2",base]];
+      let err=null;
+      for(const [fn,body] of tries){try{res=await sb("rpc/"+fn,body);err=null;break}catch(e){err=e;if(why(e))break}}
+      if(err){saveNote=why(err);if(!saveNote){try{await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.correct})}catch(e2){saveNote=why(e2);if(!saveNote)throw e2}}}
       if(!saveNote&&game.decades&&Object.keys(game.decades).length)sb("rpc/record_decades",{p_name:p.name,p_city:p.city,p_decades:game.decades}).catch(()=>{});
       if(res&&res.current_streak!=null){p.streak=res.current_streak;p.bestStreak=Math.max(p.bestStreak||0,res.best_streak);store("filmiPlayers",all);showWho();finalNote()}
     }
@@ -3330,6 +3342,7 @@ function finalNote(){
   $("finalNote").textContent=`Current streak: ${s} in a row`+(state.newBest&&b>0?" · new best streak!":` · best streak: ${b}`);
 }
 function finish(){
+  clockRun(false);state.done=true;
   stopClip();show("endView");
   const all=players(),p=all[me],played=Math.max(0,state.round),prevBest=p.bestStreak||0;
   const cur=state.leadAlive&&state.lead===played?state.carried+played:state.run;
@@ -3337,7 +3350,7 @@ function finish(){
   p.streak=cur;p.bestStreak=Math.max(prevBest,state.carried+state.lead,state.maxRun,cur);state.newBest=p.bestStreak>prevBest;
   store("filmiPlayers",all);showWho();
   $("final").textContent=`${state.correct}/${played}`;finalNote();renderTapeList();
-  renderBoard({played,correct:state.correct,skipped:Math.min(state.skipped||0,played-state.correct),lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
+  renderBoard({played,seconds:Math.min(7200,played*600,Math.round((state.clk?state.clk.ms:0)/1000)),answerMs:Math.round(state.ansMs||0),answersTimed:state.ansN||0,correct:state.correct,skipped:Math.min(state.skipped||0,played-state.correct),lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
   $("roundLbl").textContent="Ready";
 }
 
@@ -3521,7 +3534,7 @@ function mergeDecades(rows){
 }
 let unlockOpener=null,unlockThen=null;
 function showUnlock(t,d,then){
-  stopClip();unlockThen=then;unlockOpener=document.activeElement;
+  stopClip();clockRun(false);unlockThen=then;unlockOpener=document.activeElement;
   const T=U_TIER[t.tier],last=state.round>=state.total;
   $("unlockArt").innerHTML=unlockSVG(t,(TITLE_GROUPS[d]||{}).label||d);
   $("unlockLabel").textContent=`New title unlocked: ${t.t}, for ${t.n} correct answers in the ${(TITLE_GROUPS[d]||{}).name||DECADE_NAME[d]||d}.`;
@@ -3531,7 +3544,7 @@ function showUnlock(t,d,then){
 }
 function closeUnlock(){
   if($("unlock").classList.contains("hide"))return;
-  $("unlock").classList.add("hide");$("unlockArt").innerHTML="";const f=unlockThen;unlockThen=null;const wasView=viewingTitle;viewingTitle=false;if(f)f();else if(wasView&&unlockOpener&&unlockOpener.focus)unlockOpener.focus();
+  $("unlock").classList.add("hide");$("unlockArt").innerHTML="";clockRun(true);const f=unlockThen;unlockThen=null;const wasView=viewingTitle;viewingTitle=false;if(f)f();else if(wasView&&unlockOpener&&unlockOpener.focus)unlockOpener.focus();
 }
 function goNext(){if(!$("unlock").classList.contains("hide"))return;if(state&&state.unlock){const u=state.unlock;state.unlock=null;showUnlock(u.t,u.d,next)}else next()}
 $("unlockBtn").addEventListener("click",closeUnlock);
