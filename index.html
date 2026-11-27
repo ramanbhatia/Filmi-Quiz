@@ -3311,8 +3311,9 @@ async function renderBoard(game){
     if(game&&game.played>0){
       let res=null;
       const why=e=>/rate limit/.test(e.message)?"You've saved a lot of games in the last hour, so this one wasn't added to the leaderboard. Try again a bit later.":/invalid name/.test(e.message)?"Your name or city isn't allowed on the leaderboard, so this game wasn't saved online. Tap Switch player to change it.":"";
-      try{res=await sb("rpc/record_game_v2",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun})}
-      catch(e){saveNote=why(e);if(!saveNote){try{await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.correct})}catch(e2){saveNote=why(e2);if(!saveNote)throw e2}}}
+      try{res=await sb("rpc/record_game_v3",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun,p_skipped:game.skipped||0})}
+      catch(e3){try{res=await sb("rpc/record_game_v2",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_lead:game.lead,p_tail:game.tail,p_max_run:game.maxRun})}
+      catch(e){saveNote=why(e);if(!saveNote){try{await sb("rpc/record_game",{p_name:p.name,p_city:p.city,p_played:game.played,p_correct:game.correct,p_score:game.correct})}catch(e2){saveNote=why(e2);if(!saveNote)throw e2}}}}
       if(!saveNote&&game.decades&&Object.keys(game.decades).length)sb("rpc/record_decades",{p_name:p.name,p_city:p.city,p_decades:game.decades}).catch(()=>{});
       if(res&&res.current_streak!=null){p.streak=res.current_streak;p.bestStreak=Math.max(p.bestStreak||0,res.best_streak);store("filmiPlayers",all);showWho();finalNote()}
     }
@@ -3336,7 +3337,7 @@ function finish(){
   p.streak=cur;p.bestStreak=Math.max(prevBest,state.carried+state.lead,state.maxRun,cur);state.newBest=p.bestStreak>prevBest;
   store("filmiPlayers",all);showWho();
   $("final").textContent=`${state.correct}/${played}`;finalNote();renderTapeList();
-  renderBoard({played,correct:state.correct,lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
+  renderBoard({played,correct:state.correct,skipped:Math.min(state.skipped||0,played-state.correct),lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
   $("roundLbl").textContent="Ready";
 }
 
@@ -3709,7 +3710,7 @@ $("againBtn").addEventListener("click",()=>{show("setupView")});
 $("nextBtn").addEventListener("click",goNext);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
 $("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Playing 5 more seconds");playClip()});
-$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.userAnswer="Skipped";tally(false);countDecade(state.song,false);logAnswer("skipped")}goNext()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.skipped=(state.skipped||0)+1;state.userAnswer="Skipped";tally(false);countDecade(state.song,false);logAnswer("skipped")}goNext()});
 $("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
 audio.addEventListener("ended",stopClip);
 audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));

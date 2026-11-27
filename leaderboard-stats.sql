@@ -1,5 +1,7 @@
 -- Filmi Flashback: leaderboard with per-era stats and titles.
 -- Paste into Supabase > SQL Editor > New query, then Run. Read-only.
+-- Needs skips-setup.sql to have been run first (adds the songs_skipped column).
+-- Skips are only counted from the day skips-setup.sql was run; earlier skips show as answered.
 -- Era columns show "correct/played (pct%)". The Golden Era combines the 1950s, 60s and 70s.
 
 with ladder(era, need, title) as (
@@ -34,6 +36,10 @@ select
   row_number() over (order by p.songs_correct desc, p.songs_played asc, p.name) as rank,
   p.name,
   p.city,
+  p.games                              as games_played,
+  p.songs_played                       as questions_seen,
+  p.songs_played - p.songs_skipped     as questions_answered,
+  p.songs_skipped                      as questions_skipped,
   p.songs_correct || '/' || p.songs_played
     || ' (' || coalesce(round(100.0 * p.songs_correct / nullif(p.songs_played, 0)) || '%', '—') || ')' as overall,
   p.best_streak,
@@ -48,5 +54,5 @@ select
   max(f.stat)  filter (where f.era = '10s')  as era_2010s
 from public.players p
 left join fmt f on f.name_key = p.name_key and f.city_key = p.city_key
-group by p.name, p.city, p.songs_correct, p.songs_played, p.best_streak
+group by p.name, p.city, p.games, p.songs_correct, p.songs_played, p.songs_skipped, p.best_streak
 order by rank;
