@@ -2,7 +2,7 @@
 
 Guess the film, singer or on-screen star from a short clip of a Bollywood song from the Golden Era (1950s–70s), 1980s, 1990s, 2000s or 2010s.
 
-Play: https://ramanbhatia.github.io/Filmi-Quiz/
+Play: https://www.filmiflashback.com
 
 - Clips are Apple Music's official 30-second previews.
 - The shared leaderboard runs on Supabase; `leaderboard-setup.sql` creates its table and scoring function.
