@@ -100,8 +100,23 @@ select{font:16px Poppins;min-height:44px;border-radius:12px;border:2px solid var
 input[type=text]{font:16px Poppins;min-height:48px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);padding:0 14px;width:100%}
 input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .err{color:var(--mag2);font-size:14px;min-height:1.2em;margin:0;text-align:center}
-.who{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-top:20px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
+.who{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:nowrap;margin-top:20px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:10px 14px}
 .who b{font-size:17px}
+.who>span{min-width:0}.who .link{white-space:nowrap;flex:none}
+.tcar{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:10px -4px 0;padding:2px 4px}
+.tcar::-webkit-scrollbar{display:none}
+.tc{flex:0 0 100%;scroll-snap-align:center;box-sizing:border-box;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 14px 14px;text-align:center}
+.tcar:has(.tc+.tc) .tc{flex-basis:86%}
+.tc.on{border-color:var(--gold)}
+.tera{font-size:13px;color:var(--muted)}
+.tbadge{display:inline-flex;align-items:center;gap:6px;margin-top:6px;min-height:40px;padding:5px 16px;border-radius:999px;border:1.5px solid;font-weight:700;font-size:15px;transition:transform .15s}
+.tbadge:hover{transform:translateY(-1px)}.tbadge:active{transform:scale(.97)}
+.tnone{font-weight:700;font-size:15px;margin-top:6px}
+.tnext{font-size:14px;color:var(--muted);margin-top:8px}
+.tname{font-size:15px;font-weight:700;margin-top:1px}
+.tbar{height:6px;border-radius:999px;background:var(--line);margin:8px auto 0;max-width:220px;overflow:hidden}.tbar i{display:block;height:100%;background:var(--gold);border-radius:999px}
+.tdots{display:flex;justify-content:center;gap:6px;margin-top:8px}.tdots:empty{display:none}.tdots i{width:7px;height:7px;border-radius:50%;background:var(--line);display:block}.tdots i.on{background:var(--mag2)}
+.tmsg{margin:10px 0 0;padding:14px;border-radius:14px;background:var(--card);border:2px solid var(--line);text-align:center;font-size:15px}.tmsg span{color:var(--gold)}
 .record{margin:8px 0 0;padding:10px 14px;border-radius:14px;background:color-mix(in srgb,var(--gold) 22%,var(--card));border:0;font-size:15px}
 .record b{color:light-dark(#1b7a3d,#5fd38a)}
 .link{background:none;color:var(--mag2);padding:0 6px;min-height:44px;text-decoration:underline;font-weight:600}
@@ -192,7 +207,9 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 
   <section id="setupView" class="hide">
     <div class="who"><span>Playing as <b id="whoName"></b> · <span id="whoCity"></span></span><button class="link" id="switchBtn" type="button">Switch player</button></div>
-    <p class="record" id="best" aria-live="polite"></p>
+    <div class="tcar hide" id="titles" aria-label="Your titles"></div>
+    <div class="tdots" id="tdots" aria-hidden="true"></div>
+    <p class="tmsg hide" id="titleMsg"></p>
     <div class="setup">
       <label>Choose an Era
         <select id="era">
@@ -3114,7 +3131,7 @@ const players=()=>store("filmiPlayers")||{};
 const keyOf=(n,c)=>n.trim().toLowerCase()+"|"+c.trim().toLowerCase();
 let me=store("filmiCurrent");
 function showWho(){const p=players()[me];updateFavCount();$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
-  $("best").innerHTML=p.played?`Your record: <b>${+p.correct}/${+p.played}</b> correct · current streak <b>${+(p.streak||0)}</b> · best streak <b>${+(p.bestStreak||0)}</b>`+((b=>b?` · title <b>${esc(b.t.t)}</b>`:"")(bestTitle(p))):"No games yet. Your record will show here after your first game."}
+  renderTitles()}
 function refreshDecades(){serverDecades().then(r=>{if(r&&r.length&&me&&players()[me]){mergeDecades(r);showWho()}})}
 function signIn(){if(me&&players()[me]){showWho();show("setupView");refreshDecades();refreshFavs()}else{show("signupView");$("firstName").focus()}}
 
@@ -3442,10 +3459,56 @@ function showUnlock(t,d,then){
 }
 function closeUnlock(){
   if($("unlock").classList.contains("hide"))return;
-  $("unlock").classList.add("hide");$("unlockArt").innerHTML="";const f=unlockThen;unlockThen=null;if(f)f();
+  $("unlock").classList.add("hide");$("unlockArt").innerHTML="";const f=unlockThen;unlockThen=null;const wasView=viewingTitle;viewingTitle=false;if(f)f();else if(wasView&&unlockOpener&&unlockOpener.focus)unlockOpener.focus();
 }
 function goNext(){if(!$("unlock").classList.contains("hide"))return;if(state&&state.unlock){const u=state.unlock;state.unlock=null;showUnlock(u.t,u.d,next)}else next()}
 $("unlockBtn").addEventListener("click",closeUnlock);
+
+// ---------- home screen title carousel ----------
+const ERA_ORDER=["gold","80s","90s","00s","10s"];
+const eraLabel=g=>{const o=[...$("era").options].find(x=>x.value===g);return o?o.textContent:g};
+let carCards=[],carQuiet=false,carTimer=null,viewingTitle=false;
+function titleCard(g,p){
+  const c=groupCorrect(p,g),t=titleFor(g,c),n=(TITLES[g]||[]).find(x=>c<x.n),prev=t?t.n:0;
+  const badge=t?(T=>`<button type="button" class="tbadge" data-title="${g}" style="background:${T[0]};color:${T[2]};border-color:${T[1]}" aria-label="View your ${esc(t.t)} card"><span aria-hidden="true">★</span> ${esc(t.t)}</button>`)(U_TIER[t.tier]):`<div class="tnone">No title yet</div>`;
+  const next=n?`<div class="tnext">${n.n-c} more right answer${n.n-c===1?"":"s"} to</div><div class="tname">${esc(n.t)}</div><div class="tbar"><i style="width:${Math.max(3,Math.round((c-prev)/(n.n-prev)*100))}%"></i></div>`:`<div class="tnext">Top title reached. Wah!</div>`;
+  return `<div class="tc" data-g="${g}"><div class="tera">${esc(eraLabel(g))}</div>${badge}${next}</div>`;
+}
+function renderTitles(){
+  const p=players()[me];if(!p)return;
+  const e=$("era").value,owned=ERA_ORDER.filter(g=>TITLES[g]&&titleFor(g,groupCorrect(p,g)));
+  carCards=[...owned];if(TITLES[e]&&!owned.includes(e)&&(p.played||owned.length))carCards=ERA_ORDER.filter(g=>carCards.includes(g)||g===e);
+  const car=$("titles"),msgEl=$("titleMsg");
+  if(!carCards.length){car.innerHTML="";$("tdots").innerHTML="";car.classList.add("hide");msgEl.classList.remove("hide");
+    msgEl.innerHTML=p.played?`<span aria-hidden="true">✦</span> Earn your first title in the Golden Era, 90s or 2000s.`:`<span aria-hidden="true">✦</span> Play your first tape to start earning titles.`;return}
+  msgEl.classList.add("hide");car.classList.remove("hide");
+  car.innerHTML=carCards.map(g=>titleCard(g,p)).join("");
+  $("tdots").innerHTML=carCards.length>1?carCards.map(()=>"<i></i>").join(""):"";
+  const target=carCards.includes(e)?e:carCards.map(g=>[g,titleFor(g,groupCorrect(p,g))]).filter(x=>x[1]).sort((a,b)=>b[1].n-a[1].n).map(x=>x[0])[0]||carCards[0];
+  (window.requestAnimationFrame||setTimeout)(()=>carGo(target,false));
+}
+function carMark(i){[...$("titles").children].forEach((c,j)=>c.classList.toggle("on",j===i&&carCards.length>1));[...$("tdots").children].forEach((d,j)=>d.classList.toggle("on",j===i))}
+function carGo(g,smooth){const car=$("titles"),i=carCards.indexOf(g);if(i<0||!car.children[i])return;
+  carQuiet=true;const c=car.children[i];if(car.scrollTo)car.scrollTo({left:c.offsetLeft-(car.clientWidth-c.offsetWidth)/2,behavior:smooth&&!matchMedia("(prefers-reduced-motion: reduce)").matches?"smooth":"auto"});
+  carMark(i);clearTimeout(carTimer);carTimer=setTimeout(()=>{carQuiet=false},smooth?500:60)}
+$("titles").addEventListener("scroll",()=>{clearTimeout(carTimer);carTimer=setTimeout(()=>{
+  if(carQuiet){carQuiet=false;return}
+  const car=$("titles"),mid=car.scrollLeft+car.clientWidth/2;let best=0,bd=1e9;
+  [...car.children].forEach((c,j)=>{const d=Math.abs(c.offsetLeft+c.offsetWidth/2-mid);if(d<bd){bd=d;best=j}});
+  carMark(best);const g=carCards[best];if(g&&$("era").value!==g){$("era").value=g;savePrefs();setTape(g)}},120)});
+$("era").addEventListener("change",()=>{const e=$("era").value;if(!players()[me])return;
+  if(TITLES[e]&&carCards.includes(e)){carGo(e,true)}else renderTitles()});
+function viewTitle(g){
+  const p=players()[me],t=p&&titleFor(g,groupCorrect(p,g));if(!t)return;
+  unlockThen=null;unlockOpener=document.activeElement;viewingTitle=true;
+  const T=U_TIER[t.tier];$("unlockArt").innerHTML=unlockSVG(t,(TITLE_GROUPS[g]||{}).label||g);
+  $("unlockLabel").textContent=`Your title: ${t.t}, for ${t.n} correct answers in the ${(TITLE_GROUPS[g]||{}).name||g}.`;
+  const b=$("unlockBtn");b.textContent="Close";b.style.background=T[0];b.style.color=T[2];b.style.animation="none";void b.offsetWidth;b.style.animation="";
+  $("unlock").classList.remove("hide");b.focus();
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-title]");if(b)viewTitle(b.dataset.title)});
+$("unlock").addEventListener("click",e=>{if(viewingTitle&&e.target===$("unlock"))closeUnlock()});
+
 
 // ---------- My Great Song! List ----------
 const favAudio=new Audio();favAudio.preload="none";let favPlaying=null;
