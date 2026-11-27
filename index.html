@@ -192,7 +192,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
       <button class="ghost" id="skipBtn" disabled>Skip</button>
     </div>
     <p class="msg" id="msg" style="color:#e8c9d8"></p>
-    <p class="credit">Previews courtesy of Apple Music</p>
+    <p class="credit">Previews courtesy of Apple Music and Deezer</p>
   </section>
 
   <section id="signupView" class="hide">
@@ -3102,8 +3102,9 @@ async function loadPreviews(songs){
     for(let i=0;i<ids.length;i+=50){
       try{
         const d=await jsonp("https://itunes.apple.com/lookup?country="+country+"&id="+ids.slice(i,i+50).join(","));
-        for(const r of d.results||[])if(r.previewUrl)cache[r.trackId]={url:r.previewUrl,art:(r.artworkUrl100||"").replace("100x100","200x200"),link:r.trackViewUrl||""};
-      }catch(e){}
+        let got=0;for(const r of d.results||[])if(r.previewUrl){got++;cache[r.trackId]={url:r.previewUrl,art:(r.artworkUrl100||"").replace("100x100","200x200"),link:r.trackViewUrl||""}}
+        if(country==="in")appleMiss=got?0:appleMiss+1;
+      }catch(e){if(country==="in")appleMiss++}
     }
   }
 }
@@ -3121,10 +3122,42 @@ async function findTrack(song){
   }
   return false;
 }
+function listenLink(c){const l=(c&&c.link)||"";
+  if(/^https:\/\/(music|itunes)\.apple\.com\//.test(l))return `<a class="am" href="${esc(l)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`;
+  if(/^https:\/\/(www\.)?deezer\.com\//.test(l))return `<a class="am" href="${esc(l)}" target="_blank" rel="noopener">Listen on Deezer ↗</a>`;
+  return ""}
+// Backup audio source: if Apple can't supply a preview, look the song up on Deezer's public API.
+let appleMiss=0;const FORCE_DEEZER=/[?&]preview=deezer\b/.test(location.search);
+const appleDown=()=>FORCE_DEEZER||appleMiss>=3;
+const dzN=s=>s.toLowerCase().replace(/\(.*?\)|\[.*?\]/g," ").replace(/[^a-z]/g,"").replace(/h/g,"").replace(/(.)\1+/g,"$1").replace(/w/g,"v").replace(/q/g,"k").replace(/z/g,"j");
+const dzK=s=>s.toLowerCase().replace(/[^a-z]/g,"").replace(/h/g,"").replace(/(.)\1+/g,"$1").replace(/w/g,"v").replace(/q/g,"k").replace(/z/g,"j");
+const DZ_BAD=/remix|jhankar|dialogue|lofi|lo-fi|reprise|unplugged|instrumental|karaoke|cover|version|revisited|recreat|mashup|slowed|reverb|sad|female|male/i;
+function dzPick(song,list){
+  const t=dzN(song.title),tk=t.slice(0,14),f=dzK(song.film);let best=null,bs=5;
+  for(const x of list||[]){if(!x||!x.preview||!x.title||!x.album)continue;
+    const xt=dzN(x.title),xa=dzK(x.album.title||""),xk=dzK(x.title);
+    if(!(xt.startsWith(tk)||(xt.length>=6&&t.startsWith(xt.slice(0,14)))))continue;
+    const fm=xa.includes(f)||xk.includes("from"+f)||(xa.length>4&&f.includes(xa));
+    const bad=DZ_BAD.test(x.title)||/jhankar|lofi|remix|unplugged/i.test(x.album.title||"");
+    const sc=(fm?4:0)+(bad?0:2)+(/original|soundtrack/i.test(x.album.title||"")?1:0);
+    if(sc>bs){bs=sc;best=x}}
+  return best;
+}
+async function findDeezer(song){
+  for(const q of [song.title+" "+song.film,song.title]){
+    let d;try{d=await jsonp("https://api.deezer.com/search?limit=40&output=jsonp&q="+encodeURIComponent(q))}catch(e){continue}
+    const x=dzPick(song,d&&d.data);
+    if(x){cache[song.id]={url:x.preview,art:(x.album&&(x.album.cover_medium||x.album.cover))||"",link:x.link||"",src:"deezer"};return true}
+  }
+  return false;
+}
 async function prepare(song){
-  if(song.id&&!cache[song.id])await loadPreviews([song]);
-  if(song.id&&cache[song.id])return true;
-  return findTrack(song);
+  if(!appleDown()){
+    if(song.id&&!cache[song.id])await loadPreviews([song]);
+    if(song.id&&cache[song.id])return true;
+    if(!appleDown()&&await findTrack(song))return true;
+  }
+  return song.id?findDeezer(song):false;
 }
 const mem={};
 function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){if(v===undefined)return mem[k]??null;mem[k]=v}}
@@ -3174,7 +3207,7 @@ function balanceDecades(list){
 async function start(){
   $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
   const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=(era==="gold"?balanceDecades:shuffle)($("mode").value==="actor"?pool.filter(s=>s.actors&&s.actors.length):pool);setTape(era);
-  const [,srv,dec]=await Promise.all([loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak(),serverDecades()]);mergeDecades(dec);
+  const [,srv,dec]=await Promise.all([appleDown()?null:loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak(),serverDecades()]);mergeDecades(dec);
   const all=players(),pl=all[me];
   if(srv){pl.streak=srv.current_streak;pl.bestStreak=Math.max(pl.bestStreak||0,srv.best_streak);store("filmiPlayers",all)}
   state={pool,mode:$("mode").value,len:+$("len").value,total,ready:[],resolved:false,round:0,correct:0,
@@ -3184,7 +3217,7 @@ async function start(){
   (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
   while(!st.ready.length&&!st.resolved)await sleep(150);
   $("startBtn").disabled=false;$("startBtn").textContent="▶ Play";
-  if(!st.ready.length){$("setupMsg").textContent="Couldn't reach Apple Music. Check your internet connection and try again.";return}
+  if(!st.ready.length){$("setupMsg").textContent="Couldn't load the song previews. Check your internet connection and try again.";return}
   $("setupMsg").textContent="";
   show("gameView");next();
 }
@@ -3234,7 +3267,7 @@ function answer(i){
   tally(ok);countDecade(state.song,ok);
   const s=state.song;
   $("reveal").innerHTML=`${state.prev.art?`<img alt="" src="${esc(state.prev.art)}">`:""}<div><b>${ok?"Sahi jawab!":"Not quite"} · ${esc(s.title)}</b>
-   <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc((s.actors||[]).join(", ")||"—")}</dd></dl>${/^https:\/\/(music|itunes)\.apple\.com\//.test(state.prev.link||"")?`<a class="am" href="${esc(state.prev.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}<div>${wahBtn(s)}</div></div>`;
+   <dl><dt>Film</dt><dd>${esc(s.film)} (${s.year})</dd><dt>Singers</dt><dd>${esc((s.singers||[]).join(", ")||"—")}</dd><dt>On screen</dt><dd>${esc((s.actors||[]).join(", ")||"—")}</dd></dl>${listenLink(state.prev)}<div>${wahBtn(s)}</div></div>`;
   $("reveal").classList.remove("hide");$("nextBtn").classList.remove("hide");
   $("nextBtn").textContent=state.round>=state.total?"See results →":"Next song →";
   try{$("nextBtn").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})}catch(e){}
@@ -3597,13 +3630,14 @@ async function renderFavs(){
   if(!items.length){$("favNote").textContent="";$("favList").innerHTML=`<p class="favempty">Nothing here yet. When a song takes you back, tap <b>✦ Wah! Great Song!</b> after you answer, or on the results screen, and it will be saved here.</p>`;return}
   $("favNote").textContent=`${items.length} song${items.length>1?"s":""} you loved, grouped by film, newest first.`;
   if(!$("favList").querySelector(".favfilm"))$("favList").innerHTML=`<p class="favsub">Loading your songs…</p>`;
-  await loadPreviews(items.map(i=>i.song).filter(s=>s.id));
+  if(!appleDown())await loadPreviews(items.map(i=>i.song).filter(s=>s.id));
+  for(const it of items)if(!cache[it.k]&&it.song.id)await findDeezer(it.song);
   if(view!=="favView")return;
   const groups=new Map();
   for(const it of items){const g=it.film+"|"+it.year;if(!groups.has(g))groups.set(g,{film:it.film,year:it.year,at:0,songs:[]});const G=groups.get(g);G.songs.push(it);G.at=Math.max(G.at,it.at)}
   const list=[...groups.values()].sort((a,b)=>b.at-a.at);
   $("favList").innerHTML=list.map(G=>`<div class="favfilm"><h3>${esc(G.film)} <span>(${G.year})</span></h3><ul>${G.songs.sort((a,b)=>b.at-a.at).map(it=>{const c=cache[it.k]||{};
-    return `<li>${c.art?`<img class="fart" alt="" loading="lazy" src="${esc(c.art)}">`:`<span class="fart" aria-hidden="true"></span>`}<span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${/^https:\/\/(music|itunes)\.apple\.com\//.test(c.link||"")?`<a class="am" href="${esc(c.link)}" target="_blank" rel="noopener">Listen on Apple Music ↗</a>`:""}${wahBtn(it.song,true,true)}</span></li>`}).join("")}</ul></div>`).join("");
+    return `<li>${c.art?`<img class="fart" alt="" loading="lazy" src="${esc(c.art)}">`:`<span class="fart" aria-hidden="true"></span>`}<span><b>${esc(it.title)}</b><small>${esc(it.singers.join(", ")||"")}</small></span><span class="fa">${c.url?`<button type="button" class="favplay" data-fplay="${esc(it.k)}">${favPlaying===it.k?"■ Stop":"▶ Play clip"}</button>`:""}${listenLink(c)}${wahBtn(it.song,true,true)}</span></li>`}).join("")}</ul></div>`).join("");
 }
 document.addEventListener("click",e=>{
   const w=e.target.closest("[data-wah]");
