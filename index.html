@@ -126,6 +126,7 @@ input[type=text]:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .lb th{font-size:13px;color:var(--muted);font-weight:600}
 .lb td.n,.lb th.n{text-align:right;font-variant-numeric:tabular-nums}.lb td.n{white-space:nowrap}
 .lb tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent);font-weight:700}
+.lb .pct{color:var(--muted)}
 .lb .note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
 .fb-btn{position:fixed;right:14px;bottom:14px;z-index:20;background:var(--ink);color:var(--bg);min-height:42px;padding:0 16px;font-size:14px;box-shadow:0 6px 16px #0003}
 .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -265,7 +266,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     </div>
     <div class="lb">
       <h2>Leaderboard</h2>
-      <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n"><span class="long">Songs </span>played</th><th class="n">Correct</th><th class="n">Best streak</th></tr></thead><tbody id="lbBody"></tbody></table>
+      <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n">Correct</th><th class="n">Best<span class="long"> streak</span></th></tr></thead><tbody id="lbBody"></tbody></table>
       <p class="note" id="lbNote"></p>
     </div>
     <button class="start" id="againBtn">Play again</button>
@@ -3261,8 +3262,9 @@ function logAnswer(result){
   if(!online()||!state||!state.song)return;
   sb("rpc/record_answer",{p_title:state.song.title,p_film:state.song.film,p_kind:state.q.kind,p_result:result}).catch(()=>{});
 }
+const score=p=>{const pl=+p.played||0,c=+p.correct||0;return pl?`${c}/${pl}<span class="pct"> · ${Math.round(c/pl*100)}%</span>`:"—"};
 function drawBoard(rows,meKey,note){
-  $("lbBody").innerHTML=rows.length?rows.map((p,i)=>`<tr class="${keyOf(p.name,p.city)===meKey?"me":""}"><td class="n">${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.city)}</td><td class="n">${+p.played||0}</td><td class="n">${+p.correct||0}</td><td class="n">${p.bestStreak==null?"—":+p.bestStreak}</td></tr>`).join(""):`<tr><td colspan="6">No scores yet.</td></tr>`;
+  $("lbBody").innerHTML=rows.length?rows.map((p,i)=>`<tr class="${keyOf(p.name,p.city)===meKey?"me":""}"><td class="n">${i+1}</td><td>${esc(p.name)}</td><td>${esc(p.city)}</td><td class="n">${score(p)}</td><td class="n">${p.bestStreak==null?"—":+p.bestStreak}</td></tr>`).join(""):`<tr><td colspan="5">No scores yet.</td></tr>`;
   $("lbNote").textContent=note;
 }
 function localRows(){return Object.values(players()).filter(p=>p.played>0).map(p=>({...p,bestStreak:p.bestStreak||0}))
