@@ -4,6 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Filmi Flashback</title>
+<meta name="description" content="A Bollywood song quiz. Hear a few seconds of a song and name the film, the singer or the star.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Filmi Flashback">
+<meta property="og:title" content="Filmi Flashback · Bollywood song quiz">
+<meta property="og:description" content="Hear a few seconds. Name the film, the singer or the star.">
+<meta property="og:url" content="https://www.filmiflashback.com/">
+<meta property="og:image" content="https://www.filmiflashback.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Filmi Flashback, a Bollywood song quiz">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Yatra+One&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
@@ -158,6 +169,54 @@ textarea:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 .btn2{background:transparent;color:var(--ink);border:2px solid var(--line)}
 .ok{color:light-dark(#1b7a3d,#5fd38a);font-size:14px;min-height:1.2em;margin:0}
 main{padding-bottom:80px}
+/* ---------- Mehfil ---------- */
+.mshare{margin-top:10px}
+.mhelp{margin:8px 0 0;color:var(--muted);font-size:14px;text-wrap:balance}
+.mok:empty{display:none}.mok{margin-top:10px;text-wrap:balance}.mok.bad{color:var(--mag2)}
+.btn2.wide{width:100%;min-height:50px;margin-top:12px;border-radius:999px}
+.mhome{margin-top:10px}
+.mcard{display:grid;grid-template-columns:1fr auto;align-items:center;gap:2px 10px;width:100%;text-align:left;background:var(--card);color:var(--ink);border:2px solid var(--gold);border-radius:14px;padding:12px 14px;min-height:64px;font-weight:400}
+.mcard b{font-size:16px;line-height:1.3}.mcard small{grid-column:1;font-size:14px;color:var(--muted);line-height:1.35}
+.mcard .mchev{grid-row:1/span 2;grid-column:2;display:flex;align-items:center;gap:8px;color:var(--mag2);font-size:20px}
+.mnew{background:var(--mag);color:#fff;border-radius:999px;font-size:12px;font-weight:700;padding:2px 9px;white-space:nowrap}
+.mmore{display:block;margin:4px auto 0;font-size:14px}
+.mlist h3{font-size:13px;letter-spacing:.08em;color:var(--muted);margin:18px 0 8px;font-weight:700}
+.mlist .mcard{margin-bottom:8px}.mfoot{text-align:center;color:var(--muted);font-size:13px;margin-top:16px}
+.minv{text-align:center}
+.minvc{max-width:440px;margin:18px auto 0;display:grid;gap:12px;background:var(--card);border:2px solid var(--gold);border-radius:18px;padding:20px}
+.minvc h2{font:400 clamp(24px,4.5vw,30px)/1.2 "Yatra One",serif;margin:0;text-wrap:balance}
+.minvc p{margin:0}.minvc .mgot{color:var(--muted);font-size:14px;margin-top:4px}
+.mbig{font:400 44px/1 "Yatra One",serif;color:var(--mag2)}
+.minvc label{text-align:left}.minvc .start{margin-top:4px}
+.mpriv{font-size:13px;color:var(--muted)}
+.mwho{font-size:14px;color:var(--muted)}
+.mcmp{margin:16px auto 0;max-width:520px;background:var(--card);border:2px solid var(--gold);border-radius:16px;padding:16px;text-align:center}
+.mcmp h2{font:400 clamp(22px,4vw,28px)/1.2 "Yatra One",serif;margin:0;text-wrap:balance}
+.mvs{display:flex;justify-content:center;gap:10px;margin-top:12px;flex-wrap:wrap}
+.mvs span{border-radius:12px;padding:8px 14px;background:color-mix(in srgb,var(--line) 60%,transparent);font-weight:600}
+.mvs span b{font-size:20px;margin-left:6px}
+.mrows{width:100%;border-collapse:collapse;margin-top:12px;font-size:14px;text-align:left}
+.mrows th{font-size:12px;color:var(--muted);font-weight:600;padding:4px 6px;text-align:center}.mrows th:first-child{text-align:left}
+.mrows td{padding:7px 6px;border-top:1px solid var(--line);vertical-align:top}
+.mrows td.mk{text-align:center;width:3.2em;font-weight:700;white-space:nowrap}
+.mrows tr.dif td{background:color-mix(in srgb,var(--gold) 20%,transparent)}
+.mrows small{display:block;color:var(--muted);font-size:12px}
+.mk.C{color:light-dark(#1b7a3d,#5fd38a)}.mk.W{color:var(--mag2)}.mk.S,.mk.X{color:var(--muted)}
+.msame{font-size:13px;color:var(--muted);margin:8px 0 0}
+.mdet h2.favh{margin-bottom:0}.msub{color:var(--muted);margin:2px 0 12px;font-size:14px}
+.mstand{width:100%;border-collapse:collapse;background:var(--card);border:2px solid var(--line);border-radius:14px;overflow:hidden}
+.mstand td{padding:0;border-bottom:1px solid var(--line)}.mstand tr:last-child td{border-bottom:0}
+.mstand button,.mstand .mrow{display:grid;grid-template-columns:2.4em 1fr auto auto;align-items:center;gap:8px;width:100%;text-align:left;background:none;color:var(--ink);border-radius:0;padding:10px 12px;min-height:50px;font-weight:400}
+.mstand .mrank{font-size:18px;text-align:center}.mstand .mcity{color:var(--muted);font-size:13px}.mstand .msc{font-weight:700;font-variant-numeric:tabular-nums}
+.mstand .mgo{color:var(--mag2)}
+.mstand tr.me td{background:color-mix(in srgb,var(--gold) 28%,transparent)}.mstand tr.me .msc{font-weight:800}
+.mstand tr.on td{background:color-mix(in srgb,var(--mag) 12%,transparent)}
+.mtip{font-size:13px;color:var(--muted);margin:8px 0 0;text-align:center}
+.mvsbox{margin-top:14px;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px}
+.mvsbox h3{margin:0;font-size:17px;text-align:center}
+.mmsg{white-space:pre-wrap;word-break:break-word;font:15px/1.5 Poppins,system-ui,sans-serif;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:12px;margin:0;color:var(--ink)}
+.mstep,.mnote{margin:0}.mnote{font-size:13px;color:var(--muted)}
+.modal-actions{flex-wrap:wrap}
 footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 @media(max-width:600px){
   header{padding:12px 16px 14px;border-bottom-width:4px}header p{font-size:14px;margin-top:2px}
@@ -211,6 +270,7 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <div class="tcar hide" id="titles" aria-label="Your titles"></div>
     <div class="tdots" id="tdots" aria-hidden="true"></div>
     <p class="tmsg hide" id="titleMsg"></p>
+    <div class="mhome hide" id="mehfilHome"></div>
     <div class="setup">
       <label>Choose an Era
         <select id="era">
@@ -258,6 +318,13 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
     <p class="q">That's the end of the tape</p>
     <div class="big" id="final">0</div>
     <p id="finalNote" class="msg"></p>
+    <div class="mcmp hide" id="mehfilCmp" aria-live="polite"></div>
+    <div class="mshare" id="mehfilShare">
+      <button class="start hide" id="mehfilBtn" type="button">🎶 Start a Mehfil</button>
+      <p class="mhelp hide" id="mehfilHelp"></p>
+      <p class="ok mok" id="mehfilOk" role="status"></p>
+      <button class="btn2 wide" id="againBtn" type="button">Play a new tape</button>
+    </div>
     <div class="tapelist hide" id="tapeList">
       <h2>Songs on this tape</h2>
       <p class="note">Loved one? Tap <b>Wah! Great Song!</b> to save it to your list.</p>
@@ -269,8 +336,16 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
       <table><thead><tr><th class="n">#</th><th>Name</th><th>City</th><th class="n">Correct</th><th class="n">Best<span class="long"> streak</span></th></tr></thead><tbody id="lbBody"></tbody></table>
       <p class="note" id="lbNote"></p>
     </div>
-    <button class="start" id="againBtn">Play a new tape</button>
   </section>
+
+  <section id="mehfilView" class="hide minv"></section>
+  <section id="mehfilsView" class="hide mlist">
+    <button class="link" id="mehfilsBack" type="button">← Back</button>
+    <h2 class="favh">Your Mehfils</h2>
+    <div id="mehfilsBody"></div>
+    <p class="note mfoot">Mehfils stay here for 30 days.</p>
+  </section>
+  <section id="mehfilDetail" class="hide mdet"></section>
 
   <section id="favView" class="hide fav">
     <button class="link" id="favBack" type="button">← Back</button>
@@ -282,6 +357,16 @@ footer{text-align:center;color:var(--muted);font-size:13px;padding:0 16px 30px}
 <button class="fb-btn" id="fbBtn" type="button" aria-haspopup="dialog">Feedback</button>
 <div class="unlock hide" id="unlock" role="dialog" aria-modal="true" aria-labelledby="unlockLabel">
   <div class="ucard"><p class="sr-only" id="unlockLabel"></p><div id="unlockArt"></div><button type="button" id="unlockBtn">Next song</button></div>
+</div>
+<div class="modal hide" id="mShareModal" role="dialog" aria-modal="true" aria-labelledby="mShareTitle">
+  <div class="modal-card">
+    <h2 id="mShareTitle">Start a Mehfil 🎶</h2>
+    <p class="mstep">Copy this and paste it into WhatsApp, email or any chat.</p>
+    <pre class="mmsg" id="mShareText"></pre>
+    <p class="ok" id="mShareOk" role="status"></p>
+    <div class="modal-actions"><button class="btn2" type="button" id="mShareClose">Done</button><button class="btn2 hide" type="button" id="mShareNative">Share…</button><button class="start" type="button" id="mShareCopy">Copy message</button></div>
+    <p class="note mnote">Anyone with the link can join this Mehfil for 30 days.</p>
+  </div>
 </div>
 <div class="modal hide" id="fbModal" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
   <form class="modal-card" id="fbForm" novalidate>
@@ -3167,11 +3252,11 @@ let me=store("filmiCurrent");
 function showWho(){const p=players()[me];updateFavCount();$("whoName").textContent=p.name;$("whoCity").textContent=p.city;
   renderTitles()}
 function refreshDecades(){serverDecades().then(r=>{if(r&&r.length&&me&&players()[me]){mergeDecades(r);showWho()}})}
-function signIn(){if(me&&players()[me]){showWho();show("setupView");refreshDecades();refreshFavs()}else{show("signupView");$("firstName").focus()}}
+function signIn(){if(me&&players()[me]){showWho();show("setupView");refreshDecades();refreshFavs();refreshMehfils()}else{show("signupView");$("firstName").focus()}}
 
 let view="signupView";
-function show(v){view=v;for(const id of ["signupView","setupView","gameView","endView","favView"])$(id).classList.toggle("hide",id!==v);
-  $("deck").classList.toggle("hide",v!=="gameView");try{window.scrollTo(0,0)}catch(e){}}
+function show(v){view=v;for(const id of ["signupView","setupView","gameView","endView","favView","mehfilView","mehfilsView","mehfilDetail"])$(id).classList.toggle("hide",id!==v);
+  $("deck").classList.toggle("hide",v!=="gameView");if(v==="setupView"&&typeof renderMehfilHome==="function"){renderMehfilHome();if(Date.now()-mFetched>20000)refreshMehfils()}try{window.scrollTo(0,0)}catch(e){}}
 function msg(t){$("msg").textContent=t}
 
 const ERAS={"gold":{label:"Vol. 0 · Golden Era · 1950–1979",test:y=>y>=1950&&y<1980},"80s":{label:"Vol. 1 · Disco Era · 1980–1989",test:y=>y>=1980&&y<1990},"90s":{label:"Vol. 2 · Romance Era · 1990–1999",test:y=>y>=1990&&y<2000},"00s":{label:"Vol. 3 · Multiplex Era · 2000–2009",test:y=>y>=2000&&y<2010},"10s":{label:"Vol. 4 · Streaming Era · 2010–2019",test:y=>y>=2010&&y<2020},"all":{label:"Mixtape · 1950–2019",test:()=>true}};
@@ -3204,21 +3289,30 @@ function balanceDecades(list){
   while(groups.some(g=>g.length))for(const g of shuffle(groups))if(g.length)out.push(g.pop());
   return out.reverse();
 }
-async function start(){
-  $("startBtn").disabled=true;$("startBtn").textContent="Loading the tape…";
-  const era=$("era").value,pool=eraSongs(era),total=+$("rounds").value,queue=(era==="gold"?balanceDecades:shuffle)($("mode").value==="actor"?pool.filter(s=>s.actors&&s.actors.length):pool);setTape(era);
+async function start(opt={}){
+  const M=opt.mehfil||null,btn=opt.btn||$("startBtn"),label=btn.textContent,err=opt.msgEl||$("setupMsg");
+  if(btn.disabled)return;
+  btn.disabled=true;btn.textContent="Loading the tape…";
+  const era=M?M.era:opt.era||$("era").value,mode=M?M.mode:opt.mode||$("mode").value,len=M?+M.clip_len:+(opt.len||$("len").value),
+    total=M?M.questions.length:+(opt.total||$("rounds").value),pool=eraSongs(era);
+  let queue;
+  if(M)queue=M.questions.map(q=>songById(q.id)).filter(Boolean).reverse();   // a Mehfil plays the same songs in the same order
+  else{let src=mode==="actor"?pool.filter(s=>s.actors&&s.actors.length):pool;
+    if(opt.exclude){const ex=new Set(opt.exclude.map(String)),f=src.filter(s=>!ex.has(String(s.id)));if(f.length>=total)src=f}
+    queue=(era==="gold"?balanceDecades:shuffle)(src)}
+  setTape(era);
   const [,srv,dec]=await Promise.all([appleDown()?null:loadPreviews(queue.slice(-(total+20)).filter(s=>s.id)),serverStreak(),serverDecades()]);mergeDecades(dec);
   const all=players(),pl=all[me];
   if(srv){pl.streak=srv.current_streak;pl.bestStreak=Math.max(pl.bestStreak||0,srv.best_streak);store("filmiPlayers",all)}
-  state={pool,mode:$("mode").value,len:+$("len").value,total,ready:[],resolved:false,round:0,correct:0,
-    carried:pl.streak||0,run:0,lead:0,leadAlive:true,maxRun:0,dec:{},unlock:null};
+  state={pool,era,mode,len,total,ready:[],resolved:false,round:0,correct:0,
+    carried:pl.streak||0,run:0,lead:0,leadAlive:true,maxRun:0,dec:{},unlock:null,mehfil:M,qlog:[],res:[]};
   $("score").textContent=0;$("streak").textContent=state.carried;
   const st=state;
   (async()=>{while(st.ready.length<total&&queue.length&&state===st){const s=queue.pop();if(await prepare(s))st.ready.push(s)}st.resolved=true})();
   while(!st.ready.length&&!st.resolved)await sleep(150);
-  $("startBtn").disabled=false;$("startBtn").textContent="▶ Play";
-  if(!st.ready.length){$("setupMsg").textContent="Couldn't load the song previews. Check your internet connection and try again.";return}
-  $("setupMsg").textContent="";
+  btn.disabled=false;btn.textContent=label;
+  if(!st.ready.length){err.textContent="Couldn't load the song previews. Check your internet connection and try again.";return}
+  err.textContent="";
   show("gameView");next();
 }
 async function next(){
@@ -3232,11 +3326,12 @@ async function next(){
   msg("");
   const song=state.ready[state.round],prev=cache[song.id];
   state.round++;state.song=song;state.prev=prev;state.answered=false;state.extra=0;state.userAnswer=null;
-  state.q=buildQuestion(song,state.mode);
+  const fq=state.mehfil&&state.mehfil.qById[String(song.id)];
+  state.q=fq?{kind:fq.kind,answer:fq.answer,prompt:fq.prompt,options:fq.options.slice()}:buildQuestion(song,state.mode);
   $("round").textContent=state.round+" / "+state.total;$("roundLbl").textContent="Song "+state.round;
   $("question").textContent=state.q.prompt;
   $("opts").innerHTML=state.q.options.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join("");
-  audio.src=prev.url;state.offset=null;$("playBtn").textContent="▶ Play clip";
+  audio.src=prev.url;state.offset=fq?+fq.offset:null;$("playBtn").textContent="▶ Play clip";
   setButtons(true);playClip();
   if(!state.clk)state.clk={ms:0,t0:null};clockRun(true);state.qAt=clockNow();
 }
@@ -3251,6 +3346,7 @@ function setButtons(on){for(const id of ["playBtn","moreBtn","skipBtn"])$(id).di
 function playClip(){
   const go=()=>{
     if(state.offset==null){const d=audio.duration||30;state.offset=Math.max(0,Math.random()*Math.max(1,d-state.len-8)+3)}
+    else if(audio.duration&&state.offset>audio.duration-state.len)state.offset=Math.max(0,audio.duration-state.len-1);
     audio.currentTime=state.offset;stopAt=state.offset+state.len+state.extra;
     audio.play().then(()=>{$("tape").classList.add("spin");$("playBtn").textContent="↻ Replay clip";tick()}).catch(()=>msg("Tap Play to hear the clip."));
   };
@@ -3268,7 +3364,7 @@ function stopClip(){audio.pause();clearInterval(timer);$("tape").classList.remov
 
 function answer(i){
   if(state.answered)return;state.answered=true;
-  const chosen=state.q.options[i],ok=chosen===state.q.answer;state.userAnswer=chosen;
+  const chosen=state.q.options[i],ok=chosen===state.q.answer;state.userAnswer=chosen;noteQ(ok?"C":"W");
   {const dt=clockNow()-(state.qAt||0);if(state.clk&&dt>0&&dt<120000){state.ansMs=(state.ansMs||0)+dt;state.ansN=(state.ansN||0)+1}}
   logAnswer(ok?"correct":"wrong");
   [...$("opts").children].forEach((b,j)=>{b.disabled=true;if(state.q.options[j]===state.q.answer)b.classList.add("right");else if(j===+i)b.classList.add("wrong")});
@@ -3349,7 +3445,7 @@ function finish(){
   p.played=(p.played||0)+played;p.correct=(p.correct||0)+state.correct;p.games=(p.games||0)+1;
   p.streak=cur;p.bestStreak=Math.max(prevBest,state.carried+state.lead,state.maxRun,cur);state.newBest=p.bestStreak>prevBest;
   store("filmiPlayers",all);showWho();
-  $("final").textContent=`${state.correct}/${played}`;finalNote();renderTapeList();
+  $("final").textContent=`${state.correct}/${played}`;finalNote();renderTapeList();mehfilResults();
   renderBoard({played,seconds:Math.min(7200,played*600,Math.round((state.clk?state.clk.ms:0)/1000)),answerMs:Math.round(state.ansMs||0),answersTimed:state.ansN||0,correct:state.correct,skipped:Math.min(state.skipped||0,played-state.correct),lead:state.lead,tail:state.run,maxRun:state.maxRun,decades:state.dec});
   $("roundLbl").textContent="Ready";
 }
@@ -3672,7 +3768,7 @@ document.addEventListener("keydown",e=>{if($("unlock").classList.contains("hide"
 
 const labelOK=(s,max)=>{s=s.trim();const l=s.toLowerCase();return s.length>=1&&s.length<=max&&!/[0-9<>{}()@#$%^&*_+=|\\\/:;"?!~`\[\]]/.test(s)&&!/(https?|www\.|\.com)/.test(l)
   &&!/(fuck|chutiya|chutia|bhenchod|behenchod|madarchod|maderchod|bhosd)/.test(l)&&!/\b(shit|shits|cunt|bitch|asshole|bastard|dick|pussy|slut|whore|fag|gandu|nigg[a-z]*)\b/.test(l)};
-const SCREENS={signupView:"signup",setupView:"setup",gameView:"game",endView:"results",favView:"setup"};
+const SCREENS={signupView:"signup",setupView:"setup",gameView:"game",endView:"results",favView:"setup",mehfilView:"setup",mehfilsView:"setup",mehfilDetail:"setup"};
 let fbOpener=null;
 function songContext(){return view==="gameView"&&state&&state.song&&state.q?state:null}
 function openFeedback(){
@@ -3702,13 +3798,15 @@ $("fbForm").addEventListener("submit",async e=>{e.preventDefault();
   }catch(err){$("fbErr").textContent=/rate limit/.test(err.message)?"You've sent a lot of feedback recently. Please try again in an hour.":"Sorry, your feedback couldn't be sent. Please try again in a moment."}
   finally{$("fbSend").disabled=false;$("fbSend").textContent="Send"}
 });
-$("signupForm").addEventListener("submit",e=>{e.preventDefault();
-  const n=$("firstName").value.trim(),c=$("city").value.trim();
-  if(!n||!c){$("signupErr").textContent="Please enter your first name and city.";return}
-  if(!labelOK(n,30)||!labelOK(c,40)){$("signupErr").textContent="Please use a real first name and city: letters only, no numbers, symbols or links.";return}
-  $("signupErr").textContent="";const all=players(),k=keyOf(n,c);
+function nameProblem(n,c){if(!n||!c)return "Please enter your first name and city.";
+  if(!labelOK(n,30)||!labelOK(c,40))return "Please use a real first name and city: letters only, no numbers, symbols or links.";return ""}
+function addPlayer(n,c){const all=players(),k=keyOf(n,c);
   if(!all[k])all[k]={name:n,city:c,played:0,correct:0,games:0,streak:0,bestStreak:0};
-  store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();show("setupView");refreshDecades();refreshFavs()});
+  store("filmiPlayers",all);me=k;store("filmiCurrent",k);showWho();refreshDecades();refreshFavs();refreshMehfils()}
+$("signupForm").addEventListener("submit",e=>{e.preventDefault();
+  const n=$("firstName").value.trim(),c=$("city").value.trim(),bad=nameProblem(n,c);
+  $("signupErr").textContent=bad;if(bad)return;
+  addPlayer(n,c);show("setupView")});
 $("switchBtn").addEventListener("click",()=>{$("firstName").value="";$("city").value="";show("signupView");$("firstName").focus()});
 // Remember the player's last tape settings (era, question type, songs, clip length) across games and visits
 const PREF_KEYS=["era","mode","rounds","len"];
@@ -3717,13 +3815,223 @@ function savePrefs(){try{localStorage.setItem("filmiPrefs",JSON.stringify(Object
   for(const k of PREF_KEYS){const el=$(k),v=p[k]!=null?String(p[k]):(k==="era"?"90s":null);if(v!=null&&[...el.options].some(o=>o.value===v))el.value=v}
   setTape($("era").value);
   for(const k of PREF_KEYS)$(k).addEventListener("change",()=>{savePrefs();if(k==="era")setTape($("era").value)});})();
-signIn();
+// ---------- Mehfil: share the exact tape you just played; friends play the same songs and compare ----------
+const ERA_NAME={gold:"Golden Era","80s":"Disco Era","90s":"Romance Era","00s":"Multiplex Era","10s":"Streaming Era",all:"Mixtape"};
+const eraFrom=e=>e==="all"?"across Bollywood's decades":"Bollywood's "+(ERA_NAME[e]||"Romance Era");
+const MARK={C:"✓",W:"✗",S:"⏭",X:"—"},MARK_SR={C:"right",W:"wrong",S:"skipped",X:"didn't load"},SQ={C:"🟩",W:"🟥",S:"⏭️",X:"⬜"};
+const cntC=r=>(String(r||"").match(/C/g)||[]).length;
+const meP=()=>(me&&players()[me])||null;
+const isMe=(n,c)=>!!me&&keyOf(n||"",c||"")===me;
+const isStarter=(m,x)=>keyOf(x.name,x.city)===keyOf(m.starter_name,m.starter_city);
+const mLink=c=>location.origin+location.pathname+"?m="+c;
+const MCODE=(()=>{let c="";try{const u=new URL(location.href);c=(u.searchParams.get("m")||"").toUpperCase().replace(/[^A-Z2-9]/g,"").slice(0,6);
+  if(u.searchParams.has("m")){u.searchParams.delete("m");history.replaceState(null,"",u.pathname+(u.search||"")+u.hash)}}catch(e){}return c.length===6?c:""})();
+const mSeen=()=>store("filmiMehfilSeen")||{};
+function markSeen(code,n){const s=mSeen();s[code]=n;store("filmiMehfilSeen",s)}
+function mDays(t){const a=new Date(t),b=new Date();a.setHours(0,0,0,0);b.setHours(0,0,0,0);return Math.round((b-a)/864e5)}
+const mAgo=t=>{const d=mDays(t);return d<=0?"today":d===1?"yesterday":d+" days ago"};
+const mDate=t=>new Date(t).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+function mShareText(name,era,results,code){const r=String(results),n=r.length;
+  return `${name} invited you to a Mehfil on Filmi Flashback 🎶\nListen to ${n} songs from ${eraFrom(era)}. How many can you identify?\n${name} got ${cntC(r)}/${n}:\n${[...r].map(x=>SQ[x]||"").join("")}\n${mLink(code)}`}
+function noteQ(r){if(!state||!state.q||!state.song||!state.qlog)return;
+  state.qlog.push({id:Number(state.song.id),kind:state.q.kind,prompt:state.q.prompt,options:state.q.options.slice(),answer:state.q.answer,
+    offset:Math.min(60,Math.max(0,Math.round((+state.offset||0)*10)/10))});state.res.push(r)}
+function mOrder(plays){return plays.slice().sort((a,b)=>b.score-a.score||String(a.played_at).localeCompare(String(b.played_at)))}
+
+// ----- sharing -----
+let mShareOpener=null;
+async function mShare(text){
+  if(navigator.share&&matchMedia("(pointer:coarse)").matches){
+    try{await navigator.share({text});return "shared"}catch(e){if(e&&e.name==="AbortError")return "aborted"}
+  }
+  mShareOpener=document.activeElement;$("mShareText").textContent=text;$("mShareOk").textContent="";
+  $("mShareNative").classList.toggle("hide",!navigator.share);$("mShareModal").classList.remove("hide");$("mShareCopy").focus();
+  return "dialog";
+}
+function closeShare(){if($("mShareModal").classList.contains("hide"))return;$("mShareModal").classList.add("hide");if(mShareOpener&&mShareOpener.focus)mShareOpener.focus()}
+$("mShareClose").addEventListener("click",closeShare);
+$("mShareModal").addEventListener("click",e=>{if(e.target===$("mShareModal"))closeShare()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeShare()});
+$("mShareNative").addEventListener("click",()=>{navigator.share({text:$("mShareText").textContent}).then(closeShare).catch(()=>{})});
+$("mShareCopy").addEventListener("click",async()=>{const t=$("mShareText").textContent;let ok=false;
+  try{await navigator.clipboard.writeText(t);ok=true}catch(e){
+    try{const r=document.createRange();r.selectNodeContents($("mShareText"));const s=getSelection();s.removeAllRanges();s.addRange(r);ok=document.execCommand("copy")}catch(_){}}
+  $("mShareOk").textContent=ok?"✓ Copied! Paste it in any chat":"Select the message above and copy it."});
+
+// ----- results screen -----
+const mBtnLabel=st=>st.mSent?"🎶 Send it to more friends":st.mehfil?"🎶 Start your own Mehfil":"🎶 Start a Mehfil";
+function mehfilResults(){
+  const st=state,n=st.qlog.length,can=online()&&n>0;
+  $("mehfilBtn").classList.toggle("hide",!can);$("mehfilHelp").classList.toggle("hide",!can);
+  $("mehfilBtn").textContent=mBtnLabel(st);$("mehfilBtn").disabled=false;
+  $("mehfilHelp").textContent=n===1?"Invite friends to play this same song and see how everyone scores":`Invite friends to play these same ${n} songs and see how everyone scores`;
+  $("mehfilOk").textContent="";$("mehfilOk").classList.remove("bad");
+  $("mehfilCmp").classList.add("hide");$("mehfilCmp").innerHTML="";
+  if(st.mehfil)mehfilPlayed(st);
+}
+let mBusy=false;
+$("mehfilBtn").addEventListener("click",async()=>{
+  const st=state,p=meP();if(!st||!p||mBusy||!st.qlog.length)return;
+  const btn=$("mehfilBtn"),ok=$("mehfilOk");ok.classList.remove("bad");
+  if(!st.mCode){
+    mBusy=true;btn.disabled=true;btn.textContent="Getting your Mehfil ready…";ok.textContent="";
+    try{st.mCode=await sb("rpc/create_mehfil",{p_name:p.name,p_city:p.city,p_era:st.era,p_mode:st.mode,p_len:st.len,p_questions:st.qlog,p_results:st.res.join("")});
+      markSeen(st.mCode,1);refreshMehfils()}
+    catch(e){ok.classList.add("bad");
+      ok.textContent=/rate limit/.test(e.message)?"You've started a lot of Mehfils in the last hour. Try again a bit later.":
+        /invalid name/.test(e.message)?"Your name or city can't be shared, so this Mehfil couldn't start. Tap Switch player to change it.":
+        "Couldn't start a Mehfil right now. Check your connection and try again."}
+    finally{mBusy=false;btn.disabled=false;btn.textContent=mBtnLabel(st)}
+    if(!st.mCode)return;
+  }
+  const how=await mShare(mShareText(p.name,st.era,st.res.join(""),st.mCode));
+  if(how!=="aborted"){st.mSent=true;ok.textContent="Mehfil started! 🎶 Your friends can play it from the link. You'll see their scores here."}
+  btn.textContent=mBtnLabel(st);
+});
+async function mehfilPlayed(st){
+  const M=st.mehfil,p=meP(),byId={};st.qlog.forEach((q,i)=>{byId[String(q.id)]=st.res[i]});
+  const results=M.questions.map(q=>byId[String(q.id)]||"X").join("");
+  let data=null;
+  try{data=await sb("rpc/play_mehfil",{p_code:M.code,p_name:p.name,p_city:p.city,p_results:results})}catch(e){}
+  if(state!==st)return;
+  if(!data||!Array.isArray(data.plays))data={...M,plays:[...(M.plays||[]).filter(x=>!isMe(x.name,x.city)),{name:p.name,city:p.city,score:cntC(results),results}]};
+  markSeen(M.code,data.plays.length);refreshMehfils();
+  const plays=mOrder(data.plays),top=plays[0],my=cntC(results),n=M.questions.length;
+  const atTop=plays.filter(x=>x.score===top.score).length,starter=plays.find(x=>isStarter(M,x)&&!isMe(x.name,x.city));
+  const head=my>=top.score?(atTop>1?"Barabar! Sur se sur mila.":"You topped the Mehfil! 🎉"):`${esc(top.name)} tops this Mehfil, Picture abhi baaki hai!`;
+  let html=`<h2>${head}</h2>`;
+  if(starter){
+    const sr=starter.results||"";let rows="",bothR=0,bothOther=0;
+    M.questions.forEach((q,i)=>{const a=results[i]||"X",b=sr[i]||"X";
+      if(a===b){if(a==="C")bothR++;else bothOther++;return}
+      const s=songById(q.id);
+      rows+=`<tr><td>${esc(s?s.title:q.answer)}<small>${s?esc(s.film)+" · "+s.year:""}</small></td><td class="mk ${a}"><span aria-hidden="true">${MARK[a]}</span><span class="sr-only">${MARK_SR[a]}</span></td><td class="mk ${b}"><span aria-hidden="true">${MARK[b]}</span><span class="sr-only">${MARK_SR[b]}</span></td></tr>`});
+    const same=[bothR?`+${bothR} more, both right`:"",bothOther?`${bothR?"":"+"}${bothOther} more, both missed`:""].filter(Boolean).join(" · ");
+    html+=`<div class="mvs"><span>You<b>${my}/${n}</b></span><span>${esc(starter.name)}<b>${starter.score}/${n}</b></span></div>`+
+      (rows?`<table class="mrows"><thead><tr><th>Where you differed</th><th>You</th><th>${esc(starter.name)}</th></tr></thead><tbody>${rows}</tbody></table>`:`<p class="msame">You both got the same songs right.</p>`)+
+      (rows&&same?`<p class="msame">${same}</p>`:"");
+  }
+  html+=`<p class="mtip">${plays.length} played · <button class="link" type="button" data-mopen="${esc(M.code)}">See the whole Mehfil</button></p>`;
+  $("mehfilCmp").innerHTML=html;$("mehfilCmp").classList.remove("hide");
+}
+
+// ----- home screen card and list -----
+var mList=[],mListFor=null,mFetched=0;   // var: show() can run before this line during start-up
+async function refreshMehfils(){
+  if(mListFor!==me){mList=[];mListFor=me;renderMehfilHome()}
+  const p=meP(),who=me;if(!p||!online())return;mFetched=Date.now();
+  try{const r=await sb("rpc/my_mehfils",{p_name:p.name,p_city:p.city});if(me!==who)return;mList=Array.isArray(r)?r:[]}catch(e){return}
+  renderMehfilHome();if(view==="mehfilsView")renderMehfilsList();
+}
+function mTitle(m){const era=ERA_NAME[m.era]||"",base=m.mine?`Your ${era} Mehfil`:`${m.starter_name}'s ${era} Mehfil`;
+  const twin=mList.some(o=>o.code!==m.code&&o.era===m.era&&keyOf(o.starter_name,o.starter_city)===keyOf(m.starter_name,m.starter_city));
+  return twin?base+" · "+mDate(m.created_at):base}
+function mSub(m){const n=m.n,k=+m.plays_count||0;
+  if(m.mine&&k<=1)return `Sent ${mAgo(m.created_at)} · Waiting for friends to play`;
+  const who=m.mine?`${k-1} friend${k-1===1?"":"s"} played`:`${k} players`;
+  let top="";if(m.top)top=+m.top_count>1?`Tied at the top with ${m.top.score}/${n}`:`${isMe(m.top.name,m.top.city)?"You top":m.top.name+" tops"} with ${m.top.score}/${n}`;
+  return who+(top?" · "+top:"")}
+function mNew(m){const s=mSeen()[m.code];return s==null?0:Math.max(0,(+m.plays_count||0)-s)}
+function mCard(m){const nw=mNew(m);
+  return `<button type="button" class="mcard" data-mopen="${esc(m.code)}"><b><span aria-hidden="true">🎶</span> ${esc(mTitle(m))}</b><small>${esc(mSub(m))}</small><span class="mchev">${nw?`<span class="mnew">${nw} new</span>`:""}<span aria-hidden="true">›</span></span></button>`}
+function renderMehfilHome(){const box=$("mehfilHome");
+  if(!(mList&&mList.length)||!meP()){box.classList.add("hide");box.innerHTML="";return}
+  const more=mList.length-1;
+  box.innerHTML=mCard(mList[0])+(more?`<button class="link mmore" type="button" data-mlist>+${more} more Mehfil${more===1?"":"s"}</button>`:"");
+  box.classList.remove("hide")}
+function renderMehfilsList(){
+  const sec=(t,a)=>a.length?`<h3>${t}</h3>`+a.map(mCard).join(""):"";
+  $("mehfilsBody").innerHTML=sec("STARTED BY YOU",mList.filter(m=>m.mine))+sec("JOINED",mList.filter(m=>!m.mine))||`<p class="msub">No Mehfils yet.</p>`}
+$("mehfilsBack").addEventListener("click",()=>show("setupView"));
+
+// ----- one Mehfil: standings and song-by-song comparison -----
+let mDet=null,mBack="setupView";
+const backBtn=`<button class="link" type="button" data-mback>← Back</button>`;
+async function openDetail(code,pre){
+  const from=view;if(from!=="mehfilDetail")mBack=["endView","mehfilsView"].includes(from)?from:"setupView";
+  show("mehfilDetail");const box=$("mehfilDetail");
+  let m=pre||null;
+  if(!m){box.innerHTML=backBtn+`<p class="msub">Loading the Mehfil…</p>`;
+    try{m=await sb("rpc/get_mehfil",{p_code:code})}catch(e){if(view==="mehfilDetail")box.innerHTML=backBtn+`<p class="msub">Couldn't load this Mehfil. Check your connection and try again.</p>`;return}}
+  if(view!=="mehfilDetail")return;
+  if(!m){box.innerHTML=backBtn+`<p class="msub">This Mehfil has ended.</p>`;return}
+  mDet={m,plays:mOrder(m.plays),vs:null};markSeen(m.code,m.plays.length);renderMehfilHome();renderDetail();
+}
+function renderDetail(){
+  const {m,plays,vs}=mDet,n=m.n,mine=isMe(m.starter_name,m.starter_city),meRow=plays.find(x=>isMe(x.name,x.city)),k=plays.length;
+  const title=mine?`Your ${ERA_NAME[m.era]||""} Mehfil`:`${m.starter_name}'s ${ERA_NAME[m.era]||""} Mehfil`;
+  const sub=mine?(k<=1?`Sent ${mAgo(m.created_at)} · Waiting for friends to play`:`Sent ${mAgo(m.created_at)} · ${k-1} friend${k-1===1?"":"s"} played`):`Started ${mAgo(m.created_at)} · ${k} players`;
+  const rows=plays.map((x,i)=>{const r=1+plays.filter(y=>y.score>x.score).length,self=isMe(x.name,x.city);
+    const inner=`<span class="mrank">${r<=3?["🥇","🥈","🥉"][r-1]:r}</span><span>${esc(x.name)} <span class="mcity">· ${esc(x.city)}</span>${self?" <span class=\"mcity\">(you)</span>":""}</span><span class="msc">${x.score}/${n}</span>`;
+    const cell=self||!meRow?`<div class="mrow">${inner}<span></span></div>`:`<button type="button" data-mvs="${i}" aria-expanded="${vs===i}">${inner}<span class="mgo" aria-hidden="true">›</span><span class="sr-only">Compare with ${esc(x.name)}</span></button>`;
+    return `<tr class="${self?"me":""}${vs===i?" on":""}"><td>${cell}</td></tr>`}).join("");
+  let cmp="";
+  if(vs!=null&&meRow&&plays[vs]){const o=plays[vs],a=meRow.results||"",b=o.results||"";
+    cmp=`<div class="mvsbox" id="mVsBox"><h3>You vs ${esc(o.name)} · ${meRow.score}–${o.score}</h3><table class="mrows"><thead><tr><th>Song</th><th>You</th><th>${esc(o.name)}</th></tr></thead><tbody>`+
+      m.questions.map((q,i)=>{const x=a[i]||"X",y=b[i]||"X",s=songById(q.id);
+        return `<tr class="${x!==y?"dif":""}"><td>${i+1}. ${esc(s?s.title:q.answer)}<small>${s?esc(s.film)+" · "+s.year:""}</small></td><td class="mk ${x}"><span aria-hidden="true">${MARK[x]}</span><span class="sr-only">${MARK_SR[x]}</span></td><td class="mk ${y}"><span aria-hidden="true">${MARK[y]}</span><span class="sr-only">${MARK_SR[y]}</span></td></tr>`}).join("")+`</tbody></table></div>`}
+  $("mehfilDetail").innerHTML=backBtn+`<h2 class="favh">${esc(title)}</h2><p class="msub">${esc(sub)}</p><table class="mstand"><tbody>${rows}</tbody></table>`+
+    (meRow&&k>1?`<p class="mtip">Tap a name to compare song by song</p>`:"")+cmp+
+    (mine&&meRow?`<button class="start" type="button" data-msend>🎶 Send it to more friends</button>`:"")+
+    `<button class="btn2 wide" type="button" data-manother>🎶 Another Mehfil</button><p class="ok mok" id="mDetOk" role="status"></p><p class="err" id="mDetErr" role="alert"></p>`;
+}
+document.addEventListener("click",async e=>{
+  const t=e.target.closest("[data-mopen],[data-mlist],[data-mback],[data-mvs],[data-msend],[data-manother],[data-mhome]");if(!t)return;
+  if(t.dataset.mopen)return openDetail(t.dataset.mopen);
+  if(t.hasAttribute("data-mlist")){renderMehfilsList();return show("mehfilsView")}
+  if(t.hasAttribute("data-mback")){if(mBack==="mehfilsView")renderMehfilsList();return show(mBack)}
+  if(t.hasAttribute("data-mhome"))return signIn();
+  if(!mDet)return;
+  if(t.dataset.mvs!=null){const i=+t.dataset.mvs;mDet.vs=mDet.vs===i?null:i;renderDetail();
+    const f=document.querySelector(`[data-mvs="${i}"]`);if(f)f.focus();const b=$("mVsBox");if(b)try{b.scrollIntoView({block:"nearest"})}catch(_){}return}
+  if(t.hasAttribute("data-msend")){const p=meP(),r=mDet.plays.find(x=>isMe(x.name,x.city));if(!p||!r)return;
+    if(await mShare(mShareText(p.name,mDet.m.era,r.results,mDet.m.code))!=="aborted"){const ok=$("mDetOk");if(ok)ok.textContent="Sent! You'll see their scores here."}return}
+  if(t.hasAttribute("data-manother")){const m=mDet.m;$("era").value=m.era;
+    start({era:m.era,mode:m.mode,len:m.clip_len,total:m.n,exclude:m.questions.map(q=>q.id),btn:t,msgEl:$("mDetErr")})}
+});
+
+// ----- opening an invite link -----
+let mInv=null;
+async function openInvite(code){
+  show("mehfilView");const box=$("mehfilView");box.innerHTML=`<p class="msub">Loading the Mehfil…</p>`;
+  let m;try{m=online()?await sb("rpc/get_mehfil",{p_code:code}):undefined}catch(e){m=/HTTP 404/.test(e.message)?null:undefined}
+  if(m===undefined){box.innerHTML=`<div class="minvc"><h2>Couldn't load the Mehfil</h2><p>Check your internet connection and try again.</p><button class="start" type="button" id="mRetry">Try again</button><button class="link" type="button" data-mhome>Go to Filmi Flashback</button></div>`;
+    $("mRetry").addEventListener("click",()=>openInvite(code));return}
+  if(!m){box.innerHTML=`<div class="minvc"><h2>Mehfil not found</h2><p>That Mehfil has ended or the link isn't right.</p><button class="start" type="button" data-mhome>Play Filmi Flashback</button></div>`;return}
+  m.qById=Object.fromEntries(m.questions.map(q=>[String(q.id),q]));mInv=m;
+  if(meP()&&m.plays.some(x=>isMe(x.name,x.city))){showWho();refreshMehfils();return openDetail(m.code,m)}
+  renderInvite(!meP());
+}
+function renderInvite(ask){
+  const m=mInv,p=meP(),st=m.plays.find(x=>isStarter(m,x));
+  $("mehfilView").innerHTML=`<form class="minvc" id="mForm" novalidate onsubmit="return false">
+    <h2><span aria-hidden="true">🎶</span> ${esc(m.starter_name)} invited you to a Mehfil!</h2>
+    <p>Listen to ${m.n} songs from ${esc(eraFrom(m.era))}. How many can you identify?</p>
+    ${st?`<div><p class="mgot">${esc(m.starter_name)} got</p><div class="mbig">${st.score}/${m.n}</div></div>`:""}
+    ${ask?`<label>First name<input type="text" id="mName" autocomplete="given-name" maxlength="30" required></label><label>City<input type="text" id="mCity" autocomplete="address-level2" maxlength="40" required></label>`
+      :`<p class="mwho">Playing as <b>${esc(p.name)}</b> · ${esc(p.city)}<br><button class="link" type="button" id="mSwitch">Not you? Switch player</button></p>`}
+    <p class="mpriv">Your name, city and score will be shared with this Mehfil.</p>
+    <p class="err" id="mErr" role="alert"></p>
+    <button class="start" type="submit" id="mPlay">Play the tape ▶</button></form>`;
+  if(!ask)$("mSwitch").addEventListener("click",()=>{renderInvite(true);$("mName").focus()});
+  $("mForm").addEventListener("submit",e=>{e.preventDefault();invitePlay()});
+}
+function invitePlay(){
+  const m=mInv;if(!m)return;
+  if($("mName")){const n=$("mName").value.trim(),c=$("mCity").value.trim(),bad=nameProblem(n,c);
+    $("mErr").textContent=bad;if(bad)return;addPlayer(n,c)}
+  if(!meP())return;
+  if(m.plays.some(x=>isMe(x.name,x.city)))return openDetail(m.code,m);
+  start({mehfil:m,btn:$("mPlay"),msgEl:$("mErr")});
+}
+
+if(MCODE)openInvite(MCODE);else signIn();
 $("startBtn").addEventListener("click",()=>{savePrefs();start()});
 $("againBtn").addEventListener("click",()=>{show("setupView")});
 $("nextBtn").addEventListener("click",goNext);
 $("playBtn").addEventListener("click",()=>{if(!state.answered)stopAt=state.offset+state.len+state.extra;playClip()});
 $("moreBtn").addEventListener("click",()=>{if(state.answered)return;state.extra+=5;msg("Playing 5 more seconds");playClip()});
-$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.skipped=(state.skipped||0)+1;state.userAnswer="Skipped";tally(false);countDecade(state.song,false);logAnswer("skipped")}goNext()});
+$("skipBtn").addEventListener("click",()=>{if(!state.answered&&!state.busy){state.answered=true;state.skipped=(state.skipped||0)+1;state.userAnswer="Skipped";noteQ("S");tally(false);countDecade(state.song,false);logAnswer("skipped")}goNext()});
 $("opts").addEventListener("click",e=>{const b=e.target.closest(".opt");if(b)answer(b.dataset.i)});
 audio.addEventListener("ended",stopClip);
 audio.addEventListener("error",()=>msg("This clip didn't load. Press Skip for the next song."));
