@@ -3,6 +3,7 @@
 -- Needs skips-setup.sql and time-setup.sql to have been run first.
 -- Time columns only cover games played after time-setup.sql was run; they're blank until then.
 -- Skips are only counted from the day skips-setup.sql was run; earlier skips show as answered.
+-- last_game_played is when the player's most recent game was saved, in Pacific time.
 -- Era columns show "correct/played (pct%)". The Golden Era combines the 1950s, 60s and 70s.
 
 with ladder(era, need, title) as (
@@ -37,6 +38,8 @@ select
   row_number() over (order by p.songs_correct desc, p.songs_played asc, p.name) as rank,
   p.name,
   p.city,
+  to_char(p.updated_at at time zone 'America/Los_Angeles', 'Mon DD, YYYY HH12:MI AM') || ' PT'
+                                       as last_game_played,
   p.games                              as games_played,
   p.songs_played                       as questions_seen,
   p.songs_played - p.songs_skipped     as questions_answered,
@@ -64,5 +67,5 @@ select
 from public.players p
 left join fmt f on f.name_key = p.name_key and f.city_key = p.city_key
 group by p.name, p.city, p.games, p.songs_correct, p.songs_played, p.songs_skipped,
-         p.play_seconds, p.games_timed, p.answer_ms, p.answers_timed, p.best_streak
+         p.play_seconds, p.games_timed, p.answer_ms, p.answers_timed, p.best_streak, p.updated_at
 order by rank;
